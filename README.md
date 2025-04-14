@@ -1,73 +1,90 @@
-# Welcome to your Lovable project
+🌌 NOVANA – Your AI-powered Career Pilot 🚀
+Disappear from the Crowd | Evolve in Silence | Rise with Radiance
 
-## Project info
+NOVANA is more than just a dashboard—it's your personal AI co-pilot on the journey of academic brilliance and career transcendence. Built for ambitious dreamers, NOVANA blends tech, strategy, and soul into a seamless futuristic experience.
 
-**URL**: https://lovable.dev/projects/b90cf471-e34f-4698-927c-5e335afa1a63
+🌠 Features
+🎯 Long Term Career Goals
+Choose your path: Microsoft, Google, or your own startup!
 
-## How can I edit this code?
+Personalized roadmaps.
 
-There are several ways of editing your application.
+ATS-ready virtual interviews with real-time feedback.
 
-**Use Lovable**
+Curated platform-specific questions (LeetCode, GFG, etc.)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/b90cf471-e34f-4698-927c-5e335afa1a63) and start prompting.
+📚 Short Term Exam Goals
+Upload your syllabus (PDF, text, image) – NOVANA builds your study plan.
 
-Changes made via Lovable will be committed automatically to this repo.
+Upload PYQs – AI predicts high-probability questions.
 
-**Use your preferred IDE**
+Learn, revise, and slay one concept at a time.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+🌐 Event Aggregator & Registration
+Aggregates personalized events based on your progress and interests.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Auto-registers (with consent) for free events.
 
-Follow these steps:
+📝 LinkedIn Post Generator
+Upload your achievement, and watch NOVANA craft a crisp, heartfelt LinkedIn post for you.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Optional auto-upload to LinkedIn with your credentials.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+👀 Proctored Mode
+Tracks your focus level while studying.
 
-# Step 3: Install the necessary dependencies.
-npm i
+Rewards you with XP, badges, and ranks in the NOVANA community.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+🦉 NightOwl Mode
+An AI companion that chats with you at night.
 
-**Edit a file directly in GitHub**
+Motivates, comforts, and even plays ambient music to keep you going.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+🧠 Community Platform
+Peer groups, team formations, doubt solving, and social bonding – all in one space.
 
-**Use GitHub Codespaces**
+🗺️ Event Map UI
+Visualize your upcoming tech fests, seminars, and hackathons on an interactive map.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+🚀 Career Roadmap Display
+Visual representation of your journey – milestones, achievements, and what's next.
 
-## What technologies are used for this project?
+🧪 Built With
+ReactJS + Vite – Superfast, modern frontend.
 
-This project is built with:
+TailwindCSS – Glowing neon UI with responsive design.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Framer Motion – Sweet, smooth animations.
 
-## How can I deploy this project?
+Lucide Icons – Sharp and modern icon set.
 
-Simply open [Lovable](https://lovable.dev/projects/b90cf471-e34f-4698-927c-5e335afa1a63) and click on Share -> Publish.
+Gemini Pro API (optional) – For AI features (GPT or Gemini).
 
-## Can I connect a custom domain to my Lovable project?
+📸 UI Preview
 
-Yes, you can!
+“A UI born in the dark nebula of ambition, glowing with the light of purpose.”
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+🧠 Future Roadmap
+ Voice commands with Whisper AI
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+ Real-time chat with NightOwl companion
+
+ AI-based Event Recommendations
+
+ User authentication & profile saving
+
+ PWA support for mobile use
+
+🙌 Contributing
+"Together, we glow brighter."
+
+Pull requests are welcome. For major changes, open an issue first to discuss what you would like to change.
+
+📬 Contact
+Made with ❤️ by Deepmalya Koley
+📫 iamdeepmalya@gmail.com
+🔗 LinkedIn
+
+📄 License
+MIT License – do great things, just don’t be evil.
+
