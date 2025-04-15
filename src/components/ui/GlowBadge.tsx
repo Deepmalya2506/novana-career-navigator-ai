@@ -1,28 +1,24 @@
 
 import React from 'react';
-import { cn } from '@/lib/utils';
 
 interface GlowBadgeProps {
   children: React.ReactNode;
-  className?: string;
-  color?: 'blue' | 'purple' | 'pink';
+  color?: 'blue' | 'purple' | 'pink' | 'green' | 'orange';
 }
 
-const GlowBadge = ({ children, className, color = 'blue' }: GlowBadgeProps) => {
-  const colorMap = {
-    blue: 'bg-novana-blue/20 border-novana-blue/50 text-novana-light-blue',
-    purple: 'bg-novana-purple/20 border-novana-purple/50 text-purple-300',
-    pink: 'bg-novana-pink/20 border-novana-pink/50 text-pink-300',
+const GlowBadge = ({ children, color = 'blue' }: GlowBadgeProps) => {
+  const colorClasses = {
+    blue: 'from-novana-blue to-novana-light-blue',
+    purple: 'from-novana-purple to-novana-blue',
+    pink: 'from-novana-pink to-novana-purple',
+    green: 'from-green-500 to-cyan-500',
+    orange: 'from-orange-500 to-yellow-500'
   };
 
   return (
-    <span className={cn(
-      'px-3 py-1 text-xs font-medium rounded-full border animate-pulse-glow',
-      colorMap[color],
-      className
-    )}>
+    <div className={`inline-flex px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r ${colorClasses[color]} shadow-md`}>
       {children}
-    </span>
+    </div>
   );
 };
 
