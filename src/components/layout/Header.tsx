@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -76,7 +75,7 @@ const Header = () => {
     <header className="fixed top-0 left-0 w-full z-50 glass-card backdrop-blur-lg">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
         <Link to="/" className="flex items-center space-x-2">
-          <span className="text-xl font-bold cosmic-text">NOVANA</span>
+          <span className="text-xl font-bold animated-gradient-text">NOVANA</span>
         </Link>
 
         {/* Desktop Navigation */}
