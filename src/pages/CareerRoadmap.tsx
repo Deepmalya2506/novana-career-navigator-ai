@@ -4,7 +4,7 @@ import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, Circle, ArrowRight, BriefcaseBusiness, Cpu, RocketLaunch } from 'lucide-react';
+import { CheckCircle, Circle, ArrowRight, BriefcaseBusiness, Cpu, Rocket } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const CareerRoadmap = () => {
@@ -43,7 +43,7 @@ const CareerRoadmap = () => {
                 Google
               </TabsTrigger>
               <TabsTrigger value="startup" className="data-[state=active]:bg-white/20 px-6 py-3">
-                <RocketLaunch className="mr-2 h-5 w-5" />
+                <Rocket className="mr-2 h-5 w-5" />
                 Startup
               </TabsTrigger>
             </TabsList>

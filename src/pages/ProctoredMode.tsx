@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
@@ -113,8 +112,7 @@ const ProctoredMode = () => {
                   </div>
                   <Progress 
                     value={focusLevel} 
-                    className="h-3" 
-                    indicatorClassName={getProgressColor()}
+                    className={`h-3 ${getProgressColor()}`}
                   />
                 </div>
                 
