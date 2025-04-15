@@ -6,13 +6,16 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { EyeOff, Clock, Trophy, Award, Users, Eye, Video, Volume2, Timer } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useGemini } from '@/utils/geminiService';
 
 const ProctoredMode = () => {
   const [isActive, setIsActive] = useState(false);
   const [focusLevel, setFocusLevel] = useState(0);
   const [studyTime, setStudyTime] = useState(0);
   const [studyGoal, setStudyGoal] = useState(120); // in minutes
+  const [focusTip, setFocusTip] = useState("");
   const { toast } = useToast();
+  const { askQuestion } = useGemini();
   
   useEffect(() => {
     let focusInterval: number | undefined;
@@ -34,6 +37,8 @@ const ProctoredMode = () => {
         title: "Proctored Mode Activated",
         description: "Your focus is now being monitored.",
       });
+      
+      generateFocusTip();
     } else {
       clearInterval(focusInterval);
       clearInterval(timeInterval);
@@ -44,6 +49,30 @@ const ProctoredMode = () => {
       clearInterval(timeInterval);
     };
   }, [isActive, toast]);
+  
+  const generateFocusTip = async () => {
+    try {
+      const focusState = getFocusLevelText();
+      
+      const prompt = `You are a focus coach. The user's current focus level is "${focusState}". 
+      Provide ONE concise, practical tip (under 30 words) to help them maintain or improve their focus. 
+      Be direct and specific - no introduction or conclusion needed.`;
+      
+      const response = await askQuestion(prompt);
+      
+      if (response) {
+        setFocusTip(response);
+      }
+    } catch (error) {
+      console.error("Error generating focus tip:", error);
+    }
+  };
+  
+  useEffect(() => {
+    if (isActive && focusLevel % 25 < 5) {
+      generateFocusTip();
+    }
+  }, [focusLevel, isActive]);
   
   const getFocusLevelText = () => {
     if (focusLevel > 80) return "Excellent";
@@ -115,6 +144,12 @@ const ProctoredMode = () => {
                     className={`h-3 ${getProgressColor()}`}
                   />
                 </div>
+                
+                {focusTip && (
+                  <div className="glass-card p-4">
+                    <p className="italic text-white/80">{focusTip}</p>
+                  </div>
+                )}
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="glass-card p-4 flex flex-col items-center">

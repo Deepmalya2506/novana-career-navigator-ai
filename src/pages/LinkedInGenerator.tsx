@@ -7,14 +7,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Linkedin, Copy, Upload, MessageSquarePlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useGemini } from '@/utils/geminiService';
 
 const LinkedInGenerator = () => {
   const [achievement, setAchievement] = useState('');
   const [generatedPost, setGeneratedPost] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+  const { askQuestion } = useGemini();
   
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!achievement.trim()) {
       toast({
         variant: "destructive",
@@ -26,22 +28,30 @@ const LinkedInGenerator = () => {
     
     setIsGenerating(true);
     
-    // Simulating API call to generate LinkedIn post
-    setTimeout(() => {
-      const samplePosts = [
-        `🎉 Thrilled to share that I've just ${achievement}! This milestone represents countless hours of dedication and perseverance. Grateful for everyone who supported me along this journey. #Achievement #Growth #ProfessionalJourney`,
-        `📣 Achievement unlocked! I've ${achievement} and couldn't be more excited about this next step in my career journey. Looking forward to the new challenges and opportunities ahead! #CareerMilestone #Achievement`,
-        `✨ Excited to announce that I've ${achievement}! This wouldn't have been possible without the amazing support from my network and mentors. Here's to new beginnings! #Celebration #ProfessionalGrowth`
-      ];
+    try {
+      const prompt = `Write an engaging LinkedIn post about this achievement: "${achievement}". 
+      The post should be professional, include relevant hashtags, and be no longer than 3 paragraphs. 
+      Make it sound enthusiastic but not over the top.`;
       
-      setGeneratedPost(samplePosts[Math.floor(Math.random() * samplePosts.length)]);
-      setIsGenerating(false);
+      const response = await askQuestion(prompt);
       
+      if (response) {
+        setGeneratedPost(response);
+        toast({
+          title: "Post Generated!",
+          description: "Your LinkedIn post is ready to use.",
+        });
+      }
+    } catch (error) {
       toast({
-        title: "Post Generated!",
-        description: "Your LinkedIn post is ready to use.",
+        variant: "destructive",
+        title: "Generation Failed",
+        description: "Unable to generate post. Please try again.",
       });
-    }, 2000);
+      console.error(error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
   
   const handleCopy = () => {

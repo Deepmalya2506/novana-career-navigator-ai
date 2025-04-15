@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { MoonStar, PlayCircle, PauseCircle, Send, ListMusic, Volume2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useGemini } from '@/utils/geminiService';
 
 interface Message {
   id: number;
@@ -27,10 +28,12 @@ const NightOwl = () => {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const { toast } = useToast();
+  const { askQuestion } = useGemini();
   
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
     
     const newMessage: Message = {
@@ -43,26 +46,56 @@ const NightOwl = () => {
     setMessages(prev => [...prev, newMessage]);
     setInputMessage('');
     
-    // Simulate AI response
-    setTimeout(() => {
-      const responses = [
-        "You're doing great! Remember why you started this journey. Keep going!",
-        "It's normal to feel tired at this hour. Try taking a 5-minute break, drink some water, and then get back to it.",
-        "You've got this! Just focus on one small step at a time.",
-        "Success is the sum of small efforts repeated day in and day out. Keep pushing!",
-        "Night hours can be the most productive. Fewer distractions, more focus. Use this time wisely!"
-      ];
+    // Show typing indicator
+    setIsTyping(true);
+    scrollToBottom();
+    
+    try {
+      // Generate AI response using Gemini
+      const prompt = `You are Night Owl, an AI companion for students studying late at night. 
+      You're supportive, motivational, and provide concise advice. 
+      The user says: "${inputMessage}". 
+      Respond in a helpful, encouraging way that helps them stay focused and motivated during their late-night study session. 
+      Keep your response under 100 words.`;
       
-      const aiResponse: Message = {
+      const response = await askQuestion(prompt);
+      
+      if (response) {
+        const aiResponse: Message = {
+          id: Date.now(),
+          text: response,
+          sender: 'ai',
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, aiResponse]);
+      } else {
+        // Fallback response if Gemini fails
+        const fallbackResponse: Message = {
+          id: Date.now(),
+          text: "I'm here to support you! Remember to take short breaks if you feel your focus waning. You've got this!",
+          sender: 'ai',
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, fallbackResponse]);
+      }
+    } catch (error) {
+      console.error("Error generating response:", error);
+      
+      // Fallback on error
+      const errorResponse: Message = {
         id: Date.now(),
-        text: responses[Math.floor(Math.random() * responses.length)],
+        text: "I'm having a bit of trouble connecting right now, but I'm still here for you. Keep pushing forward with your work!",
         sender: 'ai',
         timestamp: new Date()
       };
       
-      setMessages(prev => [...prev, aiResponse]);
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
+      setIsTyping(false);
       scrollToBottom();
-    }, 1000);
+    }
   };
   
   const scrollToBottom = () => {
