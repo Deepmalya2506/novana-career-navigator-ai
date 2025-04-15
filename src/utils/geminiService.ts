@@ -12,8 +12,9 @@ export interface GeminiResponse {
 
 export async function askGemini(prompt: string): Promise<GeminiResponse> {
   try {
+    // Using gemini-1.0-pro-vision model instead of gemini-pro
     const response = await fetch(
-      `${BASE_URL}/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+      `${BASE_URL}/models/gemini-1.0-pro-vision:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: {

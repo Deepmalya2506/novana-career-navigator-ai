@@ -6,11 +6,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle, Circle, ArrowRight, BriefcaseBusiness, Cpu, Rocket } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { askGemini } from '@/utils/geminiService';
+import { Loader2 } from 'lucide-react';
 
 const CareerRoadmap = () => {
   const [selectedCompany, setSelectedCompany] = useState('microsoft');
   const [progress, setProgress] = useState(0);
   const { toast } = useToast();
+  const [selectedTopic, setSelectedTopic] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [aiResponse, setAiResponse] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   
   // Simulate loading progress
   useEffect(() => {
@@ -21,10 +28,42 @@ const CareerRoadmap = () => {
     return () => clearTimeout(timer);
   }, [selectedCompany]);
   
-  const handleMilestoneClick = (milestone: string) => {
+  const handleMilestoneClick = async (milestone: string) => {
+    setSelectedTopic(milestone);
+    setDialogOpen(true);
+    setIsLoading(true);
+    setAiResponse('');
+    
+    try {
+      // Create a learning-focused prompt for the selected topic
+      const prompt = `As a career advisor helping someone learning about "${milestone}" for a role at ${selectedCompany}, provide a concise overview (under 300 words) covering:
+      1. Why this skill/topic is important for ${selectedCompany}
+      2. Key concepts to understand
+      3. Two practical tips for mastering this skill
+      4. One recommended resource to learn more`;
+      
+      const response = await askGemini(prompt);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      setAiResponse(response.text);
+    } catch (error) {
+      console.error("Error getting AI response:", error);
+      setAiResponse("Sorry, I couldn't retrieve information about this topic right now. Please try again later.");
+      
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to get AI response. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+    
     toast({
-      title: "Milestone Selected",
-      description: `You're now working on: ${milestone}`,
+      title: "Topic Selected",
+      description: `You're now learning about: ${milestone}`,
     });
   };
   
@@ -200,6 +239,39 @@ const CareerRoadmap = () => {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Dialog for AI responses */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="glass-card max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="cosmic-text text-xl">{selectedTopic}</DialogTitle>
+              <DialogDescription>
+                AI-powered learning insights for {selectedCompany}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="mt-4">
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin mb-4 text-primary" />
+                  <p>Getting insights about {selectedTopic}...</p>
+                </div>
+              ) : (
+                <div className="prose prose-invert max-w-none">
+                  <div className="whitespace-pre-wrap">
+                    {aiResponse}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                Close
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </PageLayout>
   );
