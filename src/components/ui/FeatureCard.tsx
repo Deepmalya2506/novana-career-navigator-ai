@@ -13,7 +13,10 @@ interface FeatureCardProps {
 
 const FeatureCard = ({ title, description, icon: Icon, to, gradient = "from-novana-blue to-novana-purple" }: FeatureCardProps) => {
   return (
-    <Link to={to} className="feature-card group">
+    <Link 
+      to={to} 
+      className="feature-card group block hover:opacity-90 transition-opacity"
+    >
       <div className={`w-12 h-12 rounded-full mb-4 flex items-center justify-center bg-gradient-to-br ${gradient}`}>
         <Icon size={24} className="text-white" />
       </div>
