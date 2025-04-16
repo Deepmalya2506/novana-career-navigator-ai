@@ -8,46 +8,122 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Calendar, CheckCircle2, Upload, FileText, ClipboardList } from 'lucide-react';
+import { askGemini } from '@/utils/geminiService';
 
 const ExamPrep = () => {
   const [selectedTab, setSelectedTab] = useState('syllabus');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progressValue, setProgressValue] = useState(0);
   const [syllabusName, setSyllabusName] = useState('');
+  const [syllabusContent, setSyllabusContent] = useState('');
+  const [analysisResult, setAnalysisResult] = useState('');
   const { toast } = useToast();
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setSyllabusName(file.name);
+      
+      // Read file content
+      const content = await readFileContent(file);
+      setSyllabusContent(content);
+      
       toast({
         title: "File uploaded",
         description: `${file.name} has been uploaded successfully.`,
       });
-      simulateAnalysis();
+      
+      analyzeWithGemini(content);
     }
   };
-
-  const simulateAnalysis = () => {
+  
+  const readFileContent = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        resolve(e.target?.result as string);
+      };
+      
+      if (file.type === "application/pdf") {
+        // For PDFs, we can only read as binary and send the filename since we can't parse PDFs in browser
+        reader.readAsBinaryString(file);
+      } else {
+        // For text files, read as text
+        reader.readAsText(file);
+      }
+    });
+  };
+  
+  const analyzeWithGemini = async (content: string) => {
     setIsAnalyzing(true);
     setProgressValue(0);
     
+    // Start progress animation
     const interval = setInterval(() => {
       setProgressValue(prev => {
-        if (prev >= 100) {
+        if (prev >= 95) {
           clearInterval(interval);
-          setIsAnalyzing(false);
-          
-          toast({
-            title: "Analysis complete!",
-            description: "Your study plan is now ready.",
-          });
-          
-          return 100;
+          return 95;
         }
-        return prev + 10;
+        return prev + 5;
       });
-    }, 500);
+    }, 200);
+    
+    try {
+      // Create a prompt for Gemini to analyze the syllabus
+      const prompt = `
+      You are an expert academic advisor. Please analyze this course syllabus and provide:
+      1. A summary of key topics and concepts
+      2. A recommended study schedule based on topic complexity
+      3. Potential exam questions based on the content
+      4. Learning resources for each major topic
+      
+      Format your response in clear sections with headers. Here's the syllabus:
+      
+      ${content}
+      `;
+      
+      // Call Gemini API
+      const response = await askGemini(prompt);
+      
+      if (response.error) {
+        toast({
+          variant: "destructive",
+          title: "Analysis failed",
+          description: response.error,
+        });
+        
+        setIsAnalyzing(false);
+        setProgressValue(0);
+        clearInterval(interval);
+        return;
+      }
+      
+      // Set analysis result
+      setAnalysisResult(response.text);
+      
+      // Complete progress
+      clearInterval(interval);
+      setProgressValue(100);
+      setIsAnalyzing(false);
+      
+      toast({
+        title: "Analysis complete!",
+        description: "Your syllabus has been analyzed by AI.",
+      });
+      
+    } catch (error) {
+      console.error("Error analyzing syllabus:", error);
+      clearInterval(interval);
+      setIsAnalyzing(false);
+      setProgressValue(0);
+      
+      toast({
+        variant: "destructive",
+        title: "Analysis failed",
+        description: "An error occurred while analyzing your syllabus.",
+      });
+    }
   };
 
   return (
@@ -103,13 +179,16 @@ const ExamPrep = () => {
                     
                     {isAnalyzing ? (
                       <div className="space-y-2">
-                        <p className="text-white/70">Analyzing syllabus...</p>
+                        <p className="text-white/70">Analyzing syllabus with Gemini AI...</p>
                         <Progress value={progressValue} className="h-2" />
                       </div>
                     ) : progressValue === 100 ? (
-                      <Button className="w-full cosmic-gradient text-white mt-4">
-                        View Your Study Plan
-                      </Button>
+                      <div className="mt-6">
+                        <h3 className="text-xl font-semibold mb-4">AI Analysis Results</h3>
+                        <div className="bg-black/30 backdrop-blur-sm rounded-lg p-6 whitespace-pre-wrap">
+                          {analysisResult}
+                        </div>
+                      </div>
                     ) : null}
                   </div>
                 )}
