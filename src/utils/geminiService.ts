@@ -1,6 +1,4 @@
 
-import { useToast } from "@/hooks/use-toast";
-
 // API Key for Gemini
 const GEMINI_API_KEY = "AIzaSyA3iwhnvvC6mdHsFkGjMNDH7FrG4acZzq0";
 const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
@@ -12,9 +10,9 @@ export interface GeminiResponse {
 
 export async function askGemini(prompt: string): Promise<GeminiResponse> {
   try {
-    // Using gemini-1.0-pro-vision model instead of gemini-pro
+    // Using gemini-1.0-pro model instead of gemini-1.0-pro-vision for text analysis
     const response = await fetch(
-      `${BASE_URL}/models/gemini-1.0-pro-vision:generateContent?key=${GEMINI_API_KEY}`,
+      `${BASE_URL}/models/gemini-1.0-pro:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: {
@@ -34,11 +32,20 @@ export async function askGemini(prompt: string): Promise<GeminiResponse> {
             temperature: 0.7,
             topK: 40,
             topP: 0.95,
-            maxOutputTokens: 1024,
+            maxOutputTokens: 2048, // Increased token limit for more detailed responses
           },
         }),
       }
     );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Gemini API error:", errorData);
+      return { 
+        text: "",
+        error: errorData.error?.message || `Error: ${response.status} ${response.statusText}` 
+      };
+    }
 
     const data = await response.json();
     
@@ -63,22 +70,9 @@ export async function askGemini(prompt: string): Promise<GeminiResponse> {
 
 // Hook for using Gemini in components
 export const useGemini = () => {
-  const { toast } = useToast();
-  
-  const askQuestion = async (prompt: string): Promise<string> => {
-    const response = await askGemini(prompt);
-    
-    if (response.error) {
-      toast({
-        variant: "destructive",
-        title: "AI Error",
-        description: response.error || "Failed to get AI response",
-      });
-      return "";
+  return {
+    askQuestion: async (prompt: string): Promise<GeminiResponse> => {
+      return await askGemini(prompt);
     }
-    
-    return response.text;
   };
-  
-  return { askQuestion };
 };
