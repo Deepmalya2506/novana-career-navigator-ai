@@ -10,9 +10,9 @@ export interface GeminiResponse {
 
 export async function askGemini(prompt: string): Promise<GeminiResponse> {
   try {
-    // Using gemini-1.0-pro model instead of gemini-1.0-pro-vision for text analysis
+    // Using gemini-2.5-pro model for enhanced capabilities
     const response = await fetch(
-      `${BASE_URL}/models/gemini-1.0-pro:generateContent?key=${GEMINI_API_KEY}`,
+      `${BASE_URL}/models/gemini-2.5-pro:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: {
@@ -32,7 +32,7 @@ export async function askGemini(prompt: string): Promise<GeminiResponse> {
             temperature: 0.7,
             topK: 40,
             topP: 0.95,
-            maxOutputTokens: 2048, // Increased token limit for more detailed responses
+            maxOutputTokens: 4096, // Increased token limit for more detailed responses
           },
         }),
       }

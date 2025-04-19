@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import PageLayout from '@/components/layout/PageLayout';
@@ -20,6 +19,7 @@ const ExamPrep = () => {
   const [analysisResult, setAnalysisResult] = useState('');
   const [followUpQuestion, setFollowUpQuestion] = useState('');
   const [isSendingFollowUp, setIsSendingFollowUp] = useState(false);
+  const [workspaceVisible, setWorkspaceVisible] = useState(false);
   const { toast } = useToast();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -222,72 +222,82 @@ const ExamPrep = () => {
           </div>
           
           <TabsContent value="syllabus" className="space-y-8">
-            <div className="glass-card p-8">
-              <h2 className="text-2xl font-bold mb-6 text-center">Upload Your Syllabus</h2>
-              
-              <div className="flex flex-col items-center space-y-6">
-                <div 
-                  className="glass-card p-8 border-dashed border-2 border-white/30 w-full max-w-lg flex flex-col items-center justify-center cursor-pointer hover:border-white/50 transition-all"
-                  onClick={() => document.getElementById('syllabus-upload')?.click()}
-                >
-                  <Upload size={48} className="mb-4 text-white/70" />
-                  
-                  <p className="mb-2 text-xl font-medium">Drag and drop your file here</p>
-                  <p className="text-sm text-white/70 mb-6">PDF, TXT or other text files</p>
-                  
-                  <Label htmlFor="syllabus-upload" className="cursor-pointer">
-                    <Input 
-                      id="syllabus-upload" 
-                      type="file" 
-                      className="hidden" 
-                      accept=".pdf,.txt,.docx,.doc,.rtf,.md"
-                      onChange={handleFileUpload}
-                    />
-                    <Button className="cosmic-gradient text-white">Browse files</Button>
-                  </Label>
-                </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="glass-card p-8">
+                <h2 className="text-2xl font-bold mb-6 text-center">Upload Your Syllabus</h2>
                 
-                {syllabusName && (
-                  <div className="w-full max-w-lg">
-                    <p className="text-white mb-2 flex items-center">
-                      <CheckCircle2 className="mr-2 h-5 w-5 text-green-500" />
-                      {syllabusName}
-                    </p>
+                <div className="flex flex-col items-center space-y-6">
+                  <div 
+                    className="glass-card p-8 border-dashed border-2 border-white/30 w-full max-w-lg flex flex-col items-center justify-center cursor-pointer hover:border-white/50 transition-all"
+                    onClick={() => document.getElementById('syllabus-upload')?.click()}
+                  >
+                    <Upload size={48} className="mb-4 text-white/70" />
                     
-                    {isAnalyzing ? (
-                      <div className="space-y-2">
-                        <p className="text-white/70">Analyzing syllabus with Gemini AI...</p>
-                        <Progress value={progressValue} className="h-2" />
-                      </div>
-                    ) : progressValue === 100 ? (
-                      <div className="mt-6 space-y-4">
-                        <h3 className="text-xl font-semibold mb-4">AI Analysis Results</h3>
-                        <div className="bg-black/30 backdrop-blur-sm rounded-lg p-6 whitespace-pre-wrap overflow-auto max-h-[500px]">
-                          {analysisResult}
+                    <p className="mb-2 text-xl font-medium">Drag and drop your file here</p>
+                    <p className="text-sm text-white/70 mb-6">PDF, TXT or other text files</p>
+                    
+                    <Label htmlFor="syllabus-upload" className="cursor-pointer">
+                      <Input 
+                        id="syllabus-upload" 
+                        type="file" 
+                        className="hidden" 
+                        accept=".pdf,.txt,.docx,.doc,.rtf,.md"
+                        onChange={handleFileUpload}
+                      />
+                      <Button className="cosmic-gradient text-white">Browse files</Button>
+                    </Label>
+                  </div>
+                  
+                  {syllabusName && (
+                    <div className="w-full">
+                      <p className="text-white mb-2 flex items-center">
+                        <CheckCircle2 className="mr-2 h-5 w-5 text-green-500" />
+                        {syllabusName}
+                      </p>
+                      
+                      {isAnalyzing && (
+                        <div className="space-y-2">
+                          <p className="text-white/70">Analyzing syllabus with Gemini AI...</p>
+                          <Progress value={progressValue} className="h-2" />
                         </div>
-                        
-                        {/* Follow-up question section */}
-                        <div className="mt-4">
-                          <h4 className="text-lg font-medium mb-2">Ask a follow-up question</h4>
-                          <div className="flex gap-2">
-                            <Textarea
-                              placeholder="Ask anything about this syllabus..."
-                              value={followUpQuestion}
-                              onChange={(e) => setFollowUpQuestion(e.target.value)}
-                              className="flex-grow"
-                              disabled={isSendingFollowUp}
-                            />
-                            <Button 
-                              onClick={handleFollowUpQuestion} 
-                              disabled={!followUpQuestion.trim() || isSendingFollowUp}
-                              className="cosmic-gradient"
-                            >
-                              {isSendingFollowUp ? "Sending..." : <Send className="h-4 w-4" />}
-                            </Button>
-                          </div>
-                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="glass-card p-8">
+                <h2 className="text-2xl font-bold mb-6 text-center">AI Analysis Workspace</h2>
+                
+                {analysisResult ? (
+                  <div className="space-y-4">
+                    <div className="bg-black/30 backdrop-blur-sm rounded-lg p-6 whitespace-pre-wrap overflow-auto max-h-[500px]">
+                      {analysisResult}
+                    </div>
+                    
+                    <div className="mt-6">
+                      <h3 className="text-lg font-medium mb-4">Ask Follow-up Questions</h3>
+                      <div className="flex gap-2">
+                        <Textarea
+                          placeholder="Ask anything about the syllabus..."
+                          value={followUpQuestion}
+                          onChange={(e) => setFollowUpQuestion(e.target.value)}
+                          className="flex-grow"
+                          disabled={isSendingFollowUp}
+                        />
+                        <Button 
+                          onClick={handleFollowUpQuestion} 
+                          disabled={!followUpQuestion.trim() || isSendingFollowUp}
+                          className="cosmic-gradient"
+                        >
+                          {isSendingFollowUp ? "Sending..." : <Send className="h-4 w-4" />}
+                        </Button>
                       </div>
-                    ) : null}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center text-white/70">
+                    <p>Upload a syllabus to see AI analysis and ask questions</p>
                   </div>
                 )}
               </div>
