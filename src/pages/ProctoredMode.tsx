@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
@@ -61,7 +62,7 @@ const ProctoredMode = () => {
       const response = await askQuestion(prompt);
       
       if (response) {
-        setFocusTip(response);
+        setFocusTip(response.text); // Fixed: Accessing the text property
       }
     } catch (error) {
       console.error("Error generating focus tip:", error);

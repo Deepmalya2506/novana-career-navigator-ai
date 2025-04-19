@@ -36,7 +36,7 @@ const LinkedInGenerator = () => {
       const response = await askQuestion(prompt);
       
       if (response) {
-        setGeneratedPost(response);
+        setGeneratedPost(response.text); // Fixed: Accessing the text property
         toast({
           title: "Post Generated!",
           description: "Your LinkedIn post is ready to use.",

@@ -63,7 +63,7 @@ const NightOwl = () => {
       if (response) {
         const aiResponse: Message = {
           id: Date.now(),
-          text: response,
+          text: response.text, // Fixed: Accessing the text property
           sender: 'ai',
           timestamp: new Date()
         };
