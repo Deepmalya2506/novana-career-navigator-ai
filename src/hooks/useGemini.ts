@@ -10,7 +10,7 @@ export interface GeminiResponse {
 }
 
 export const useGemini = () => {
-  const askQuestion = async (prompt: string, model: string = "gemini-pro"): Promise<GeminiResponse> => {
+  const askQuestion = async (prompt: string, model: string = "gemini-2.0-flash"): Promise<GeminiResponse> => {
     try {
       // Select the model (default to gemini-pro)
       const generativeModel = genAI.getGenerativeModel({ model });
