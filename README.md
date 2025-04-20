@@ -1,5 +1,6 @@
 🌌 NOVANA – Your AI-powered Career Pilot 🚀
 Disappear from the Crowd | Evolve in Silence | Rise with Radiance
+https://novana-career-navigator-ai.lovable.app/
 
 NOVANA is more than just a dashboard—it's your personal AI co-pilot on the journey of academic brilliance and career transcendence. Built for ambitious dreamers, NOVANA blends tech, strategy, and soul into a seamless futuristic experience.
 
