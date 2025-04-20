@@ -1,6 +1,6 @@
 
-// API Key for Gemini
-const GEMINI_API_KEY = "AIzaSyA3iwhnvvC6mdHsFkGjMNDH7FrG4acZzq0";
+// Use environment variable instead of hardcoded key
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
 const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
 
 export interface GeminiResponse {
