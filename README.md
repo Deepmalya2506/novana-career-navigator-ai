@@ -1,5 +1,5 @@
 🌌 NOVANA – Your AI-powered Career Pilot 🚀
-Disappear from the Crowd | Evolve in Silence | Rise with Radiance
+As a Star die in Supernova, let another Star evolve with NOVANA
 
 CLICK HERE: https://novana-career-navigator-ai.lovable.app/
 
