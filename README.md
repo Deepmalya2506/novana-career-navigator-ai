@@ -1,5 +1,5 @@
 🌌 NOVANA – Your AI-powered Career Pilot 🚀
-As a Star die in Supernova|Let another Star evolve with NOVANA
+As a Star die in Supernova | Let another Star evolve with NOVANA
 
 CLICK HERE: https://novana-career-navigator-ai.lovable.app/
 
