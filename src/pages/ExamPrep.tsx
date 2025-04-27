@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import PageLayout from '@/components/layout/PageLayout';
@@ -64,18 +65,44 @@ const ExamPrep = () => {
     
     try {
       const prompt = `
-      You are an expert academic tutor specializing in exam preparation. Analyze this study material thoroughly and provide:
+      As an expert academic tutor specializing in exam preparation, create a comprehensive study guide based on the provided material. Your analysis should include:
 
-      1. A detailed breakdown of main topics (one per line, prefixed with TOPIC:)
-      2. For each topic:
-         - Comprehensive explanation suitable for teaching
-         - Key concepts and definitions
-         - Important formulas or principles (if applicable)
-         - Common exam questions related to this topic
-         - Study tips and mnemonics (if helpful)
+      1. A clear list of main topics (one per line, prefixed with TOPIC:)
+      2. For each topic, provide a detailed section that includes:
+         - In-depth explanation with clear examples
+         - Key concepts and definitions highlighted
+         - Important formulas or principles with their applications
+         - At least 2-3 solved example problems related to this topic
+         - Practice exercises with step-by-step solutions
+         - Common exam questions with detailed answers
+         - Study tips and memory techniques
 
-      First list all topics with TOPIC: prefix, then provide detailed explanations.
-      Focus on clarity and exam relevance. Make the content easy to understand and remember.
+      Format your response as follows:
+      TOPIC: [Topic Name]
+      
+      EXPLANATION:
+      [Comprehensive explanation with examples]
+      
+      KEY CONCEPTS:
+      [List of key concepts and definitions]
+      
+      FORMULAS/PRINCIPLES:
+      [Important formulas or principles]
+      
+      SOLVED EXAMPLES:
+      [2-3 solved example problems with detailed solutions]
+      
+      PRACTICE EXERCISES:
+      [Practice exercises with step-by-step solutions]
+      
+      EXAM QUESTIONS:
+      [Common exam questions with detailed answers]
+      
+      STUDY TIPS:
+      [Study tips and memory techniques]
+
+      First list all topics with TOPIC: prefix, then provide the detailed sections for each topic.
+      Make your explanations thorough yet easy to understand.
 
       Study material to analyze:
       ${content.slice(0, 15000)}
@@ -114,6 +141,7 @@ const ExamPrep = () => {
     } finally {
       setIsAnalyzing(false);
       clearInterval(interval);
+      setProgressValue(100);
     }
   };
 
@@ -222,21 +250,75 @@ const ExamPrep = () => {
 
   const getCurrentTopicContent = () => {
     if (!analysisResult || topics.length === 0) return '';
+    
     const currentTopic = topics[currentTopicIndex];
     const lines = analysisResult.split('\n');
+    
+    // Find the index of the current topic
     const topicIndex = lines.findIndex(line => 
       line.trim().replace('TOPIC:', '').trim() === currentTopic
     );
     
     if (topicIndex === -1) return '';
     
-    let content = [];
-    for (let i = topicIndex + 1; i < lines.length; i++) {
-      if (lines[i].trim().startsWith('TOPIC:')) break;
-      if (lines[i].trim()) content.push(lines[i]);
+    // Find the index of the next topic (if any)
+    const nextTopicIndex = lines.findIndex((line, index) => 
+      index > topicIndex && line.trim().startsWith('TOPIC:')
+    );
+    
+    // Extract content between current topic and next topic (or end of text)
+    const endIndex = nextTopicIndex !== -1 ? nextTopicIndex : lines.length;
+    const topicContent = lines.slice(topicIndex + 1, endIndex)
+      .filter(line => line.trim() !== '')
+      .join('\n');
+    
+    return topicContent;
+  };
+
+  const formatTopicContent = (content: string) => {
+    if (!content) return '';
+
+    // Split content by sections
+    const sections = [
+      { title: "EXPLANATION", content: extractSection(content, "EXPLANATION", "KEY CONCEPTS") },
+      { title: "KEY CONCEPTS", content: extractSection(content, "KEY CONCEPTS", "FORMULAS/PRINCIPLES") },
+      { title: "FORMULAS/PRINCIPLES", content: extractSection(content, "FORMULAS/PRINCIPLES", "SOLVED EXAMPLES") },
+      { title: "SOLVED EXAMPLES", content: extractSection(content, "SOLVED EXAMPLES", "PRACTICE EXERCISES") },
+      { title: "PRACTICE EXERCISES", content: extractSection(content, "PRACTICE EXERCISES", "EXAM QUESTIONS") },
+      { title: "EXAM QUESTIONS", content: extractSection(content, "EXAM QUESTIONS", "STUDY TIPS") },
+      { title: "STUDY TIPS", content: extractSection(content, "STUDY TIPS", null) }
+    ];
+
+    // Format content with proper styling
+    return (
+      <div className="space-y-6">
+        {sections.map((section, index) => (
+          section.content && (
+            <div key={index} className="mt-6">
+              <h3 className="text-xl font-bold mb-3">{section.title}</h3>
+              <div className="whitespace-pre-wrap">{section.content}</div>
+            </div>
+          )
+        ))}
+      </div>
+    );
+  };
+
+  const extractSection = (content: string, sectionName: string, nextSectionName: string | null) => {
+    // Find the section
+    const sectionStart = content.indexOf(sectionName + ":");
+    if (sectionStart === -1) return '';
+    
+    let sectionEnd;
+    if (nextSectionName) {
+      sectionEnd = content.indexOf(nextSectionName + ":", sectionStart);
+      if (sectionEnd === -1) sectionEnd = content.length;
+    } else {
+      sectionEnd = content.length;
     }
     
-    return content.join('\n');
+    // Extract and format the section content
+    return content.substring(sectionStart + sectionName.length + 1, sectionEnd).trim();
   };
 
   return (
@@ -332,8 +414,8 @@ const ExamPrep = () => {
                     </div>
                     
                     <h3 className="text-xl font-bold mb-4">{topics[currentTopicIndex]}</h3>
-                    <div className="prose prose-invert max-w-none">
-                      {getCurrentTopicContent()}
+                    <div className="prose prose-invert max-w-none overflow-auto max-h-[70vh]">
+                      {formatTopicContent(getCurrentTopicContent())}
                     </div>
                   </CardContent>
                 </Card>

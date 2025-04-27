@@ -10,10 +10,18 @@ export interface GeminiResponse {
 }
 
 export const useGemini = () => {
-  const askQuestion = async (prompt: string, model: string = "gemini-2.0-flash"): Promise<GeminiResponse> => {
+  const askQuestion = async (prompt: string): Promise<GeminiResponse> => {
     try {
-      // Select the model (default to gemini-pro)
-      const generativeModel = genAI.getGenerativeModel({ model });
+      // Select the most powerful Gemini model available
+      const generativeModel = genAI.getGenerativeModel({ 
+        model: "gemini-2.5-pro",
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 8192, // Increased token limit for detailed responses with examples
+        },
+      });
 
       // Generate content
       const result = await generativeModel.generateContent(prompt);
