@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import PageLayout from '@/components/layout/PageLayout';
@@ -7,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, CheckCircle2, Upload, FileText, ClipboardList, Send } from 'lucide-react';
+import { Calendar, CheckCircle2, Upload, FileText, ClipboardList, Send, Predict } from 'lucide-react';
 import { useGemini } from '@/hooks/useGemini';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,8 +18,9 @@ const ExamPrep = () => {
   const [syllabusName, setSyllabusName] = useState('');
   const [syllabusContent, setSyllabusContent] = useState('');
   const [analysisResult, setAnalysisResult] = useState('');
-  const [followUpQuestion, setFollowUpQuestion] = useState('');
-  const [isSendingFollowUp, setIsSendingFollowUp] = useState(false);
+  const [previousQuestions, setPreviousQuestions] = useState('');
+  const [predictedQuestions, setPredictedQuestions] = useState('');
+  const [isPredicting, setIsPredicting] = useState(false);
   const [topics, setTopics] = useState<string[]>([]);
   const [currentTopicIndex, setCurrentTopicIndex] = useState(0);
   const { toast } = useToast();
@@ -51,7 +51,7 @@ const ExamPrep = () => {
       });
     }
   };
-  
+
   const readFileContent = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -69,7 +69,7 @@ const ExamPrep = () => {
       reader.readAsText(file);
     });
   };
-  
+
   const analyzeWithGemini = async (content: string) => {
     setIsAnalyzing(true);
     setProgressValue(0);
@@ -97,7 +97,6 @@ const ExamPrep = () => {
         throw new Error(response.error);
       }
 
-      // Extract topics and their explanations
       const lines = response.text.split('\n');
       const extractedTopics = lines
         .filter(line => line.trim().startsWith('TOPIC:'))
@@ -127,7 +126,87 @@ const ExamPrep = () => {
       clearInterval(interval);
     }
   };
-  
+
+  const handlePreviousQuestionsUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    try {
+      const content = await readFileContent(file);
+      setPreviousQuestions(content);
+      
+      toast({
+        title: "Questions uploaded",
+        description: `${file.name} has been uploaded successfully.`,
+      });
+    } catch (error) {
+      console.error("Error handling file upload:", error);
+      toast({
+        variant: "destructive",
+        title: "Upload failed",
+        description: "There was a problem processing your file.",
+      });
+    }
+  };
+
+  const predictQuestions = async () => {
+    if (!previousQuestions) {
+      toast({
+        variant: "destructive",
+        title: "No questions uploaded",
+        description: "Please upload previous year questions first.",
+      });
+      return;
+    }
+
+    setIsPredicting(true);
+    setPredictedQuestions('');
+    setProgressValue(0);
+
+    const interval = setInterval(() => {
+      setProgressValue(prev => Math.min(prev + 5, 95));
+    }, 200);
+
+    try {
+      const prompt = `
+      As an expert exam analyzer, analyze these previous year questions and predict the most likely questions for the upcoming exam. Consider:
+      1. Identify patterns in question types and topics
+      2. Analyze frequency of topics
+      3. Predict 5-7 most likely questions with brief explanations
+      
+      Previous questions:
+      ${previousQuestions}
+      `;
+
+      const response = await askQuestion(prompt);
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      setPredictedQuestions(response.text);
+      
+      clearInterval(interval);
+      setProgressValue(100);
+      
+      toast({
+        title: "Prediction complete!",
+        description: "Check out the predicted questions below.",
+      });
+      
+    } catch (error) {
+      console.error("Error predicting questions:", error);
+      toast({
+        variant: "destructive",
+        title: "Prediction failed",
+        description: error instanceof Error ? error.message : "An error occurred during prediction",
+      });
+    } finally {
+      setIsPredicting(false);
+      clearInterval(interval);
+    }
+  };
+
   const handleNextTopic = () => {
     if (currentTopicIndex < topics.length - 1) {
       setCurrentTopicIndex(prev => prev + 1);
@@ -172,6 +251,10 @@ const ExamPrep = () => {
               <TabsTrigger value="learn" className="data-[state=active]:bg-white/20 px-6 py-3">
                 <ClipboardList className="mr-2 h-5 w-5" />
                 Learn Topics
+              </TabsTrigger>
+              <TabsTrigger value="predict" className="data-[state=active]:bg-white/20 px-6 py-3">
+                <Predict className="mr-2 h-5 w-5" />
+                Predict Questions
               </TabsTrigger>
             </TabsList>
           </div>
@@ -262,6 +345,66 @@ const ExamPrep = () => {
               </div>
             )}
           </TabsContent>
+          
+          <TabsContent value="predict">
+            <div className="glass-card p-8 max-w-2xl mx-auto">
+              <h2 className="text-2xl font-bold mb-6 text-center">Question Predictor</h2>
+              
+              <div className="flex flex-col items-center space-y-6">
+                <div 
+                  className="glass-card p-8 border-dashed border-2 border-white/30 w-full cursor-pointer hover:border-white/50 transition-all"
+                  onClick={() => document.getElementById('questions-upload')?.click()}
+                >
+                  <Upload size={48} className="mx-auto mb-4 text-white/70" />
+                  <p className="text-center mb-2 text-xl font-medium">Upload previous year questions</p>
+                  <p className="text-center text-sm text-white/70 mb-6">TXT or PDF files</p>
+                  
+                  <div className="text-center">
+                    <Label htmlFor="questions-upload" className="cursor-pointer">
+                      <Input 
+                        id="questions-upload" 
+                        type="file" 
+                        className="hidden" 
+                        accept=".txt,.pdf"
+                        onChange={handlePreviousQuestionsUpload}
+                      />
+                      <Button className="cosmic-gradient text-white">Select File</Button>
+                    </Label>
+                  </div>
+                </div>
+
+                {previousQuestions && (
+                  <div className="w-full space-y-4">
+                    <Button 
+                      onClick={predictQuestions} 
+                      className="w-full cosmic-gradient"
+                      disabled={isPredicting}
+                    >
+                      {isPredicting ? 'Analyzing...' : 'Predict Questions'}
+                    </Button>
+
+                    {isPredicting && (
+                      <div className="space-y-2">
+                        <p className="text-white/70">Analyzing question patterns...</p>
+                        <Progress value={progressValue} className="h-2" />
+                      </div>
+                    )}
+
+                    {predictedQuestions && (
+                      <Card className="mt-6">
+                        <CardContent className="p-6">
+                          <h3 className="text-xl font-bold mb-4">Predicted Questions</h3>
+                          <div className="prose prose-invert max-w-none whitespace-pre-wrap">
+                            {predictedQuestions}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
     </PageLayout>
@@ -269,4 +412,3 @@ const ExamPrep = () => {
 };
 
 export default ExamPrep;
-
