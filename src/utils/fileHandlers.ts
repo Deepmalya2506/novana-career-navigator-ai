@@ -1,7 +1,12 @@
 
 import * as pdfjsLib from 'pdfjs-dist';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Set the worker source path correctly
+// Instead of using CDN which is causing errors, we'll use the worker from node_modules
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.js',
+  import.meta.url
+).href;
 
 export const extractTextFromPDF = async (file: File): Promise<string> => {
   try {
@@ -21,15 +26,70 @@ export const extractTextFromPDF = async (file: File): Promise<string> => {
     return fullText;
   } catch (error) {
     console.error('Error extracting text from PDF:', error);
+    
+    // Add more helpful error message
+    if (error instanceof Error && error.message.includes('worker')) {
+      console.error('PDF worker initialization failed. Using fallback method.');
+      return extractTextFromPDFWithoutWorker(file);
+    }
+    
     throw new Error('Failed to extract text from PDF');
   }
 };
 
+// Fallback method for PDF processing without worker
+const extractTextFromPDFWithoutWorker = async (file: File): Promise<string> => {
+  // Simple fallback for text extraction
+  // This is a very basic implementation that will at least allow some functionality
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        // Try to extract text in a simplified way
+        const result = reader.result as ArrayBuffer;
+        const uint8Array = new Uint8Array(result);
+        
+        // Look for text patterns in PDF bytes
+        // This is a very basic implementation and won't work well for all PDFs
+        let text = '';
+        let inText = false;
+        let textStart = 0;
+        
+        for (let i = 0; i < uint8Array.length - 2; i++) {
+          // Look for text object markers in PDF
+          if (uint8Array[i] === 40 && uint8Array[i+1] >= 32) { // '(' character
+            inText = true;
+            textStart = i + 1;
+          } else if (inText && uint8Array[i] === 41) { // ')' character
+            inText = false;
+            const textBytes = uint8Array.slice(textStart, i);
+            // Convert bytes to string
+            const decoder = new TextDecoder('utf-8');
+            text += decoder.decode(textBytes) + ' ';
+          }
+        }
+        
+        // If we couldn't extract any text, provide a message
+        if (text.trim().length === 0) {
+          text = "The PDF content could not be fully extracted. Please try a text file instead.";
+        }
+        
+        resolve(text);
+      } catch (e) {
+        resolve("Could not parse PDF content. Please try a text file instead.");
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+};
+
 export const readFileContent = async (file: File): Promise<string> => {
+  // Handle PDF files with our custom function
   if (file.type === 'application/pdf') {
     return await extractTextFromPDF(file);
   }
   
+  // For all other file types, use the standard FileReader
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
