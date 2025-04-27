@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import PageLayout from '@/components/layout/PageLayout';
@@ -65,47 +64,62 @@ const ExamPrep = () => {
     
     try {
       const prompt = `
-      As an expert academic tutor specializing in exam preparation, create a comprehensive study guide based on the provided material. Your analysis should include:
+      Act as an expert educational content creator and tutor. Analyze the following study material and create a comprehensive, well-structured learning guide. Follow this exact format for EACH topic:
 
-      1. A clear list of main topics (one per line, prefixed with TOPIC:)
-      2. For each topic, provide a detailed section that includes:
-         - In-depth explanation with clear examples
-         - Key concepts and definitions highlighted
-         - Important formulas or principles with their applications
-         - At least 2-3 solved example problems related to this topic
-         - Practice exercises with step-by-step solutions
-         - Common exam questions with detailed answers
-         - Study tips and memory techniques
+      First, list all main topics with "TOPIC:" prefix.
 
-      Format your response as follows:
-      TOPIC: [Topic Name]
+      Then, for each topic, provide:
+
+      [TOPIC_NAME]
+      ================
       
-      EXPLANATION:
-      [Comprehensive explanation with examples]
+      CORE CONCEPTS:
+      - Detailed explanation of fundamental principles
+      - Key definitions and terminology
+      - Important relationships and dependencies
       
-      KEY CONCEPTS:
-      [List of key concepts and definitions]
+      DETAILED EXPLANATION:
+      - In-depth breakdown of the topic
+      - Step-by-step concept development
+      - Real-world applications and significance
       
-      FORMULAS/PRINCIPLES:
-      [Important formulas or principles]
+      EXAMPLES:
+      1. Basic example with detailed explanation
+      2. Intermediate example showing concept application
+      3. Advanced example demonstrating mastery
       
-      SOLVED EXAMPLES:
-      [2-3 solved example problems with detailed solutions]
+      SOLVED PROBLEMS:
+      Problem 1:
+      [Problem statement]
+      Solution:
+      [Step-by-step solution with explanations]
+      
+      Problem 2:
+      [Different type of problem]
+      Solution:
+      [Detailed solution steps]
+      
+      Problem 3:
+      [Complex application]
+      Solution:
+      [Comprehensive solution]
       
       PRACTICE EXERCISES:
-      [Practice exercises with step-by-step solutions]
+      1. [Exercise with solution outline]
+      2. [Exercise with key points]
+      3. [Challenge exercise]
       
-      EXAM QUESTIONS:
-      [Common exam questions with detailed answers]
-      
-      STUDY TIPS:
-      [Study tips and memory techniques]
+      KEY TAKEAWAYS:
+      - Main points to remember
+      - Common pitfalls to avoid
+      - Exam tips and tricks
 
-      First list all topics with TOPIC: prefix, then provide the detailed sections for each topic.
-      Make your explanations thorough yet easy to understand.
+      =================
+
+      Make sure each section is thorough and includes clear explanations. For mathematical topics, include formulas and their applications. For theoretical topics, include diagrams or flowcharts in text form.
 
       Study material to analyze:
-      ${content.slice(0, 15000)}
+      ${content}
       `;
       
       const response = await askQuestion(prompt);
@@ -128,7 +142,7 @@ const ExamPrep = () => {
       
       toast({
         title: "Analysis complete!",
-        description: `Successfully analyzed ${extractedTopics.length} topics for your exam preparation.`,
+        description: `Successfully analyzed ${extractedTopics.length} topics with detailed examples and solutions.`,
       });
       
     } catch (error) {

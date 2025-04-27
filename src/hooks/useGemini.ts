@@ -12,14 +12,14 @@ export interface GeminiResponse {
 export const useGemini = () => {
   const askQuestion = async (prompt: string): Promise<GeminiResponse> => {
     try {
-      // Select the most powerful Gemini model available
+      // Use gemini-pro model instead as 2.5-pro is not available
       const generativeModel = genAI.getGenerativeModel({ 
-        model: "gemini-2.5-pro",
+        model: "gemini-pro",
         generationConfig: {
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 8192, // Increased token limit for detailed responses with examples
+          maxOutputTokens: 8192,
         },
       });
 

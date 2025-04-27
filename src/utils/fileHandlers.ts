@@ -1,12 +1,21 @@
-
 import * as pdfjsLib from 'pdfjs-dist';
+import { createWorker } from 'tesseract.js';
 
 // Set the worker source path correctly
-// Instead of using CDN which is causing errors, we'll use the worker from node_modules
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.js',
   import.meta.url
 ).href;
+
+// Function to perform OCR on an image
+async function performOCR(imageData: ImageData): Promise<string> {
+  const worker = await createWorker();
+  await worker.loadLanguage('eng');
+  await worker.initialize('eng');
+  const { data: { text } } = await worker.recognize(imageData);
+  await worker.terminate();
+  return text;
+}
 
 export const extractTextFromPDF = async (file: File): Promise<string> => {
   try {
@@ -16,24 +25,41 @@ export const extractTextFromPDF = async (file: File): Promise<string> => {
 
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
+      
+      // Get text content
       const textContent = await page.getTextContent();
       const pageText = textContent.items
         .map((item: any) => item.str)
         .join(' ');
-      fullText += pageText + '\n';
+
+      // If text content is sparse, try OCR
+      if (pageText.trim().length < 100) {
+        const viewport = page.getViewport({ scale: 1.5 });
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        
+        if (context) {
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          
+          await page.render({
+            canvasContext: context,
+            viewport: viewport
+          }).promise;
+
+          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+          const ocrText = await performOCR(imageData);
+          fullText += ocrText + '\n';
+        }
+      } else {
+        fullText += pageText + '\n';
+      }
     }
 
     return fullText;
   } catch (error) {
     console.error('Error extracting text from PDF:', error);
-    
-    // Add more helpful error message
-    if (error instanceof Error && error.message.includes('worker')) {
-      console.error('PDF worker initialization failed. Using fallback method.');
-      return extractTextFromPDFWithoutWorker(file);
-    }
-    
-    throw new Error('Failed to extract text from PDF');
+    return extractTextFromPDFWithoutWorker(file);
   }
 };
 
