@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import PageLayout from '@/components/layout/PageLayout';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, CheckCircle2, Upload, FileText, ClipboardList, Send, Predict } from 'lucide-react';
+import { Calendar, CheckCircle2, Upload, FileText, ClipboardList, ArrowRight, Send } from 'lucide-react';
 import { useGemini } from '@/hooks/useGemini';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
@@ -253,7 +254,7 @@ const ExamPrep = () => {
                 Learn Topics
               </TabsTrigger>
               <TabsTrigger value="predict" className="data-[state=active]:bg-white/20 px-6 py-3">
-                <Predict className="mr-2 h-5 w-5" />
+                <ArrowRight className="mr-2 h-5 w-5" />
                 Predict Questions
               </TabsTrigger>
             </TabsList>

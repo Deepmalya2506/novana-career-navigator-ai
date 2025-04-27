@@ -1,3 +1,4 @@
+
 import { useState, useRef } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ const NightOwl = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
   const { askQuestion } = useGemini();
 
