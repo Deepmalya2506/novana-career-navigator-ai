@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import PageLayout from '@/components/layout/PageLayout';
@@ -11,6 +10,7 @@ import { Calendar, CheckCircle2, Upload, FileText, ClipboardList, ArrowRight, Se
 import { useGemini } from '@/hooks/useGemini';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
+import { readFileContent } from '@/utils/fileHandlers';
 
 const ExamPrep = () => {
   const [selectedTab, setSelectedTab] = useState('syllabus');
@@ -53,24 +53,6 @@ const ExamPrep = () => {
     }
   };
 
-  const readFileContent = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      
-      reader.onload = (e) => {
-        const result = e.target?.result;
-        if (typeof result === 'string') {
-          resolve(result);
-        } else {
-          reject(new Error("Failed to read file as text"));
-        }
-      };
-      
-      reader.onerror = () => reject(new Error("Error reading file"));
-      reader.readAsText(file);
-    });
-  };
-
   const analyzeWithGemini = async (content: string) => {
     setIsAnalyzing(true);
     setProgressValue(0);
@@ -82,13 +64,20 @@ const ExamPrep = () => {
     
     try {
       const prompt = `
-      You are an expert academic advisor. Please analyze this course content and provide:
+      You are an expert academic tutor specializing in exam preparation. Analyze this study material thoroughly and provide:
+
       1. A detailed breakdown of main topics (one per line, prefixed with TOPIC:)
-      2. For each topic, provide a comprehensive explanation suitable for teaching
-      
-      First list all topics, then provide the explanations.
-      Here's the content to analyze:
-      
+      2. For each topic:
+         - Comprehensive explanation suitable for teaching
+         - Key concepts and definitions
+         - Important formulas or principles (if applicable)
+         - Common exam questions related to this topic
+         - Study tips and mnemonics (if helpful)
+
+      First list all topics with TOPIC: prefix, then provide detailed explanations.
+      Focus on clarity and exam relevance. Make the content easy to understand and remember.
+
+      Study material to analyze:
       ${content.slice(0, 15000)}
       `;
       
@@ -112,7 +101,7 @@ const ExamPrep = () => {
       
       toast({
         title: "Analysis complete!",
-        description: `Found ${extractedTopics.length} topics to study.`,
+        description: `Successfully analyzed ${extractedTopics.length} topics for your exam preparation.`,
       });
       
     } catch (error) {
@@ -170,12 +159,23 @@ const ExamPrep = () => {
 
     try {
       const prompt = `
-      As an expert exam analyzer, analyze these previous year questions and predict the most likely questions for the upcoming exam. Consider:
-      1. Identify patterns in question types and topics
-      2. Analyze frequency of topics
-      3. Predict 5-7 most likely questions with brief explanations
+      As an expert exam analyzer and question predictor, analyze these previous year questions carefully. Consider:
+
+      1. Pattern Analysis:
+         - Identify recurring question types
+         - Note the frequency of topics
+         - Analyze marking schemes and question formats
+         - Detect any trends in difficulty levels
+
+      2. Based on your analysis, predict:
+         - 7-10 most likely questions for the upcoming exam
+         - Explanation of why each question is likely to appear
+         - Recommended approach to answer each question
+         - Important points to include in answers
+
+      Structure your response clearly with sections for Pattern Analysis and Predicted Questions.
       
-      Previous questions:
+      Previous year questions:
       ${previousQuestions}
       `;
 
@@ -192,7 +192,7 @@ const ExamPrep = () => {
       
       toast({
         title: "Prediction complete!",
-        description: "Check out the predicted questions below.",
+        description: "Question predictions are ready with detailed explanations.",
       });
       
     } catch (error) {
