@@ -10,14 +10,9 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
 // Function to perform OCR on an image
 async function performOCR(imageData: ImageData): Promise<string> {
   // Create a worker
-  const worker = await createWorker();
+  const worker = await createWorker('eng');
   
-  // Initialize tesseract with the correct API for v5+
-  await worker.load();
-  await worker.loadLanguage('eng');
-  await worker.initialize('eng');
-  
-  // Recognize the text from the image
+  // Recognize the text from the image using the newer API
   const { data } = await worker.recognize(imageData);
   const text = data.text;
   

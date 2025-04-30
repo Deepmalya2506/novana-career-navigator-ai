@@ -1,7 +1,7 @@
 
 // Use environment variable instead of hardcoded key
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
-const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
+const BASE_URL = "https://generativelanguage.googleapis.com/v1";
 
 export interface GeminiResponse {
   text: string;
@@ -10,9 +10,9 @@ export interface GeminiResponse {
 
 export async function askGemini(prompt: string): Promise<GeminiResponse> {
   try {
-    // Using gemini-2.5-pro model for enhanced capabilities
+    // Using gemini-2.0-flash model for enhanced speed and capabilities
     const response = await fetch(
-      `${BASE_URL}/models/gemini-2.5-pro:generateContent?key=${GEMINI_API_KEY}`,
+      `${BASE_URL}/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: {
@@ -32,7 +32,7 @@ export async function askGemini(prompt: string): Promise<GeminiResponse> {
             temperature: 0.7,
             topK: 40,
             topP: 0.95,
-            maxOutputTokens: 4096, // Increased token limit for more detailed responses
+            maxOutputTokens: 4096,
           },
         }),
       }
