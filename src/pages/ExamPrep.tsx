@@ -17,6 +17,8 @@ const ExamPrep = () => {
     setAnalysisResult(result);
     setTopics(extractedTopics);
     setCurrentTopicIndex(0);
+    // Automatically switch to the learn tab when analysis is complete
+    setSelectedTab('learn');
   };
 
   const handleNextTopic = () => {
@@ -34,12 +36,17 @@ const ExamPrep = () => {
   return (
     <PageLayout title="Exam Preparation">
       <div className="container mx-auto px-4 py-12">
-        <Tabs defaultValue="syllabus" onValueChange={setSelectedTab} className="w-full">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-2">StudyBuddy AI</h1>
+          <p className="text-lg text-white/70">Upload your material or ask questions to master any topic</p>
+        </div>
+        
+        <Tabs defaultValue="syllabus" value={selectedTab} onValueChange={setSelectedTab} className="w-full">
           <div className="flex justify-center mb-8">
             <TabsList className="glass-card p-1">
               <TabsTrigger value="syllabus" className="data-[state=active]:bg-white/20 px-6 py-3">
                 <FileText className="mr-2 h-5 w-5" />
-                Upload & Analyze
+                Upload & Ask
               </TabsTrigger>
               <TabsTrigger value="learn" className="data-[state=active]:bg-white/20 px-6 py-3">
                 <ClipboardList className="mr-2 h-5 w-5" />

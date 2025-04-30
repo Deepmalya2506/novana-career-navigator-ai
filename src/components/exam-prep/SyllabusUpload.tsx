@@ -4,8 +4,11 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
-import { Upload, CheckCircle2 } from 'lucide-react';
+import { Upload, CheckCircle2, Send, FileText, Type } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGemini } from '@/hooks/useGemini';
 import { readFileContent } from '@/utils/fileHandlers';
 
@@ -18,6 +21,8 @@ const SyllabusUpload: React.FC<SyllabusUploadProps> = ({ onAnalysisComplete }) =
   const [progressValue, setProgressValue] = useState(0);
   const [syllabusName, setSyllabusName] = useState('');
   const [syllabusContent, setSyllabusContent] = useState('');
+  const [question, setQuestion] = useState('');
+  const [inputMethod, setInputMethod] = useState<'file' | 'text'>('file');
   const { toast } = useToast();
   const { askQuestion } = useGemini();
 
@@ -35,8 +40,6 @@ const SyllabusUpload: React.FC<SyllabusUploadProps> = ({ onAnalysisComplete }) =
         title: "File uploaded",
         description: `${file.name} has been uploaded successfully.`,
       });
-      
-      await analyzeWithGemini(content);
     } catch (error) {
       console.error("Error handling file upload:", error);
       toast({
@@ -47,7 +50,31 @@ const SyllabusUpload: React.FC<SyllabusUploadProps> = ({ onAnalysisComplete }) =
     }
   };
 
-  const analyzeWithGemini = async (content: string) => {
+  const analyzeContent = async () => {
+    let contentToAnalyze = '';
+    
+    if (inputMethod === 'file') {
+      if (!syllabusContent) {
+        toast({
+          variant: "destructive",
+          title: "No content",
+          description: "Please upload a file first.",
+        });
+        return;
+      }
+      contentToAnalyze = syllabusContent;
+    } else {
+      if (!question.trim()) {
+        toast({
+          variant: "destructive",
+          title: "No question",
+          description: "Please enter a question or topic to analyze.",
+        });
+        return;
+      }
+      contentToAnalyze = question;
+    }
+    
     setIsAnalyzing(true);
     setProgressValue(0);
     
@@ -56,8 +83,12 @@ const SyllabusUpload: React.FC<SyllabusUploadProps> = ({ onAnalysisComplete }) =
     }, 200);
     
     try {
+      const promptPrefix = inputMethod === 'file' 
+        ? "Act as an expert educational content creator and academic tutor. Analyze the following study material and create a comprehensive, well-structured learning guide."
+        : "Act as an expert educational content creator and academic tutor. Based on the following question or topic, create a comprehensive, well-structured learning guide.";
+      
       const prompt = `
-      Act as an expert educational content creator and academic tutor. Analyze the following study material and create a comprehensive, well-structured learning guide.
+      ${promptPrefix}
 
       Your analysis MUST follow this exact format for EACH topic:
 
@@ -115,8 +146,8 @@ const SyllabusUpload: React.FC<SyllabusUploadProps> = ({ onAnalysisComplete }) =
       
       IMPORTANT: Make sure to include 3 solved examples for EACH topic with detailed step-by-step solutions that a student can follow. Each example should increase in difficulty level.
 
-      Study material to analyze:
-      ${content}
+      ${inputMethod === 'file' ? 'Study material to analyze:' : 'Question/Topic to analyze:'}
+      ${contentToAnalyze}
       `;
       
       const response = await askQuestion(prompt);
@@ -155,45 +186,92 @@ const SyllabusUpload: React.FC<SyllabusUploadProps> = ({ onAnalysisComplete }) =
   };
 
   return (
-    <div className="glass-card p-8 max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6 text-center">Upload Your Study Material</h2>
-      
-      <div className="flex flex-col items-center space-y-6">
-        <div 
-          className="glass-card p-8 border-dashed border-2 border-white/30 w-full cursor-pointer hover:border-white/50 transition-all"
-          onClick={() => document.getElementById('syllabus-upload')?.click()}
-        >
-          <Upload size={48} className="mx-auto mb-4 text-white/70" />
-          <p className="text-center mb-2 text-xl font-medium">Upload your study material</p>
-          <p className="text-center text-sm text-white/70 mb-6">PDF, TXT or other text files</p>
-          
-          <div className="text-center">
-            <Label htmlFor="syllabus-upload" className="cursor-pointer">
-              <Input 
-                id="syllabus-upload" 
-                type="file" 
-                className="hidden" 
-                accept=".pdf,.txt,.docx,.doc"
-                onChange={handleFileUpload}
-              />
-              <Button className="cosmic-gradient text-white">Select File</Button>
-            </Label>
-          </div>
+    <div className="max-w-2xl mx-auto">
+      <Tabs 
+        defaultValue="file" 
+        value={inputMethod} 
+        onValueChange={(value) => setInputMethod(value as 'file' | 'text')}
+      >
+        <div className="flex justify-center mb-6">
+          <TabsList className="glass-card">
+            <TabsTrigger value="file" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Upload File
+            </TabsTrigger>
+            <TabsTrigger value="text" className="flex items-center gap-2">
+              <Type className="h-4 w-4" />
+              Ask Question
+            </TabsTrigger>
+          </TabsList>
         </div>
         
-        {syllabusName && (
-          <div className="w-full">
-            <p className="text-white mb-2 flex items-center">
-              <CheckCircle2 className="mr-2 h-5 w-5 text-green-500" />
-              {syllabusName}
-            </p>
-            
-            {isAnalyzing && (
-              <div className="space-y-2">
-                <p className="text-white/70">Analyzing content with AI...</p>
-                <Progress value={progressValue} className="h-2" />
+        <TabsContent value="file">
+          <Card className="glass-card">
+            <CardContent className="p-6">
+              <div 
+                className="border-dashed border-2 border-white/30 p-8 rounded-lg cursor-pointer hover:border-white/50 transition-all text-center"
+                onClick={() => document.getElementById('syllabus-upload')?.click()}
+              >
+                <Upload size={48} className="mx-auto mb-4 text-white/70" />
+                <p className="mb-2 text-xl font-medium">Upload your study material</p>
+                <p className="text-sm text-white/70 mb-6">PDF, TXT or other text files</p>
+                
+                <Label htmlFor="syllabus-upload" className="cursor-pointer">
+                  <Input 
+                    id="syllabus-upload" 
+                    type="file" 
+                    className="hidden" 
+                    accept=".pdf,.txt,.docx,.doc,.jpg,.jpeg,.png"
+                    onChange={handleFileUpload}
+                  />
+                  <Button className="cosmic-gradient text-white">Select File</Button>
+                </Label>
               </div>
-            )}
+              
+              {syllabusName && (
+                <div className="mt-4">
+                  <p className="text-white mb-2 flex items-center">
+                    <CheckCircle2 className="mr-2 h-5 w-5 text-green-500" />
+                    {syllabusName}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="text">
+          <Card className="glass-card">
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <Label htmlFor="question-input">Enter your question or topic</Label>
+                <Textarea 
+                  id="question-input"
+                  placeholder="E.g., Explain quantum computing principles, or What are the key concepts of neural networks?"
+                  className="min-h-[150px]"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+      
+      <div className="mt-6">
+        <Button 
+          onClick={analyzeContent}
+          className="w-full cosmic-gradient"
+          disabled={isAnalyzing || (inputMethod === 'file' ? !syllabusContent : !question)}
+        >
+          {isAnalyzing ? 'Analyzing...' : 'Generate Study Guide'}
+          {!isAnalyzing && <Send className="ml-2 h-4 w-4" />}
+        </Button>
+        
+        {isAnalyzing && (
+          <div className="space-y-2 mt-4">
+            <p className="text-white/70">Analyzing content with AI...</p>
+            <Progress value={progressValue} className="h-2" />
           </div>
         )}
       </div>
