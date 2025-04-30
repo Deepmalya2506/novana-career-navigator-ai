@@ -12,7 +12,7 @@ export interface GeminiResponse {
 export const useGemini = () => {
   const askQuestion = async (prompt: string): Promise<GeminiResponse> => {
     try {
-      // Use gemini-pro model instead as 2.5-pro is not available
+      // Use gemini-pro model as specified by the user
       const generativeModel = genAI.getGenerativeModel({ 
         model: "gemini-pro",
         generationConfig: {

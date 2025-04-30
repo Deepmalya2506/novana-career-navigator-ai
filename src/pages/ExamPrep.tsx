@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import PageLayout from '@/components/layout/PageLayout';
@@ -64,9 +65,11 @@ const ExamPrep = () => {
     
     try {
       const prompt = `
-      Act as an expert educational content creator and tutor. Analyze the following study material and create a comprehensive, well-structured learning guide. Follow this exact format for EACH topic:
+      Act as an expert educational content creator and academic tutor. Analyze the following study material and create a comprehensive, well-structured learning guide.
 
-      First, list all main topics with "TOPIC:" prefix.
+      Your analysis MUST follow this exact format for EACH topic:
+
+      First, list all main topics with "TOPIC:" prefix. Each topic should be clearly separated.
 
       Then, for each topic, provide:
 
@@ -116,7 +119,9 @@ const ExamPrep = () => {
 
       =================
 
-      Make sure each section is thorough and includes clear explanations. For mathematical topics, include formulas and their applications. For theoretical topics, include diagrams or flowcharts in text form.
+      Make each section extremely thorough and include clear explanations. For mathematical topics, include formulas and their applications. For theoretical topics, include diagrams or flowcharts in text form.
+      
+      IMPORTANT: Make sure to include 3 solved examples for EACH topic with detailed step-by-step solutions that a student can follow. Each example should increase in difficulty level.
 
       Study material to analyze:
       ${content}
@@ -294,13 +299,12 @@ const ExamPrep = () => {
 
     // Split content by sections
     const sections = [
-      { title: "EXPLANATION", content: extractSection(content, "EXPLANATION", "KEY CONCEPTS") },
-      { title: "KEY CONCEPTS", content: extractSection(content, "KEY CONCEPTS", "FORMULAS/PRINCIPLES") },
-      { title: "FORMULAS/PRINCIPLES", content: extractSection(content, "FORMULAS/PRINCIPLES", "SOLVED EXAMPLES") },
-      { title: "SOLVED EXAMPLES", content: extractSection(content, "SOLVED EXAMPLES", "PRACTICE EXERCISES") },
-      { title: "PRACTICE EXERCISES", content: extractSection(content, "PRACTICE EXERCISES", "EXAM QUESTIONS") },
-      { title: "EXAM QUESTIONS", content: extractSection(content, "EXAM QUESTIONS", "STUDY TIPS") },
-      { title: "STUDY TIPS", content: extractSection(content, "STUDY TIPS", null) }
+      { title: "CORE CONCEPTS", content: extractSection(content, "CORE CONCEPTS", "DETAILED EXPLANATION") },
+      { title: "DETAILED EXPLANATION", content: extractSection(content, "DETAILED EXPLANATION", "EXAMPLES") },
+      { title: "EXAMPLES", content: extractSection(content, "EXAMPLES", "SOLVED PROBLEMS") },
+      { title: "SOLVED PROBLEMS", content: extractSection(content, "SOLVED PROBLEMS", "PRACTICE EXERCISES") },
+      { title: "PRACTICE EXERCISES", content: extractSection(content, "PRACTICE EXERCISES", "KEY TAKEAWAYS") },
+      { title: "KEY TAKEAWAYS", content: extractSection(content, "KEY TAKEAWAYS", null) }
     ];
 
     // Format content with proper styling

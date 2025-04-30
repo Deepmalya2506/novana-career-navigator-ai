@@ -1,5 +1,7 @@
+
 import * as pdfjsLib from 'pdfjs-dist';
 import { createWorker } from 'tesseract.js';
+import type { Worker } from 'tesseract.js';
 
 // Set the worker source path correctly
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
@@ -9,10 +11,18 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
 
 // Function to perform OCR on an image
 async function performOCR(imageData: ImageData): Promise<string> {
-  const worker = await createWorker();
+  // Create a worker with proper typing
+  const worker: Worker = await createWorker();
+  
+  // Use the correct API for Tesseract.js v5+
   await worker.loadLanguage('eng');
   await worker.initialize('eng');
-  const { data: { text } } = await worker.recognize(imageData);
+  
+  // Recognize the text from the image
+  const { data } = await worker.recognize(imageData);
+  const text = data.text;
+  
+  // Clean up
   await worker.terminate();
   return text;
 }
