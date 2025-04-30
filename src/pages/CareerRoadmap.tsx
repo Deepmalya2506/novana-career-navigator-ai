@@ -4,73 +4,186 @@ import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, Circle, ArrowRight, BriefcaseBusiness, Cpu, Rocket } from 'lucide-react';
+import { BriefcaseBusiness, Cpu, Rocket, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { askGemini } from '@/utils/geminiService';
-import { Loader2 } from 'lucide-react';
+import ProfileCustomization from '@/components/career/ProfileCustomization';
+import SkillItem from '@/components/career/SkillItem';
+import { getCareerSkills, getSkillDetails, SkillData, CareerData } from '@/services/careerService';
+
+interface ProfileData {
+  name: string;
+  objective: string;
+  goals: string;
+  targetRoles: string[];
+}
 
 const CareerRoadmap = () => {
+  // State management
   const [selectedCompany, setSelectedCompany] = useState('microsoft');
   const [progress, setProgress] = useState(0);
   const { toast } = useToast();
-  const [selectedTopic, setSelectedTopic] = useState('');
+  const [selectedSkill, setSelectedSkill] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [aiResponse, setAiResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [careerData, setCareerData] = useState<CareerData>({ skills: [], description: '' });
+  const [loading, setLoading] = useState(false);
   
-  // Simulate loading progress
+  // New state for profile and progress tracking
+  const [profile, setProfile] = useState<ProfileData>({
+    name: 'User',
+    objective: 'Land a software engineering position at a top tech company',
+    goals: 'Learn key technical skills and prepare for technical interviews',
+    targetRoles: ['Software Engineer'],
+  });
+  
+  const [completedSkills, setCompletedSkills] = useState<Record<string, boolean>>({});
+  const [completedTopics, setCompletedTopics] = useState<Record<string, boolean>>({});
+  
+  // Calculate progress based on completed skills and topics
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setProgress(15);
-    }, 500);
+    if (careerData.skills.length === 0) return;
     
-    return () => clearTimeout(timer);
-  }, [selectedCompany]);
+    let totalTopics = 0;
+    let completedCount = 0;
+    
+    careerData.skills.forEach(skill => {
+      totalTopics += skill.topics.length;
+      
+      skill.topics.forEach(topic => {
+        if (completedTopics[topic]) {
+          completedCount++;
+        }
+      });
+    });
+    
+    const newProgress = totalTopics > 0 ? Math.round((completedCount / totalTopics) * 100) : 0;
+    setProgress(newProgress);
+  }, [completedSkills, completedTopics, careerData.skills]);
   
-  const handleMilestoneClick = async (milestone: string) => {
-    setSelectedTopic(milestone);
+  // Load career data when company changes
+  useEffect(() => {
+    const fetchCareerData = async () => {
+      setLoading(true);
+      try {
+        const selectedRole = profile.targetRoles.length > 0 ? profile.targetRoles[0] : 'Software Engineer';
+        const data = await getCareerSkills(selectedRole, selectedCompany);
+        setCareerData(data);
+      } catch (error) {
+        console.error('Failed to fetch career data:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load career data. Please try again.",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchCareerData();
+  }, [selectedCompany, profile.targetRoles, toast]);
+  
+  // Handle skill selection
+  const handleSkillClick = async (skill: string) => {
+    setSelectedSkill(skill);
     setDialogOpen(true);
     setIsLoading(true);
     setAiResponse('');
     
     try {
-      // Create a learning-focused prompt for the selected topic
-      const prompt = `As a career advisor helping someone learning about "${milestone}" for a role at ${selectedCompany}, provide a concise overview (under 300 words) covering:
-      1. Why this skill/topic is important for ${selectedCompany}
-      2. Key concepts to understand
-      3. Two practical tips for mastering this skill
-      4. One recommended resource to learn more`;
-      
-      const response = await askGemini(prompt);
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      
-      setAiResponse(response.text);
+      const response = await getSkillDetails(skill);
+      setAiResponse(response);
     } catch (error) {
-      console.error("Error getting AI response:", error);
-      setAiResponse("Sorry, I couldn't retrieve information about this topic right now. Please try again later.");
+      console.error("Error getting skill details:", error);
+      setAiResponse("Sorry, I couldn't retrieve information about this skill right now. Please try again later.");
       
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to get AI response. Please try again.",
+        description: "Failed to get skill details. Please try again.",
       });
     } finally {
       setIsLoading(false);
     }
-    
-    toast({
-      title: "Topic Selected",
-      description: `You're now learning about: ${milestone}`,
-    });
   };
+  
+  // Toggle skill completion status
+  const handleToggleSkill = (skill: string, completed: boolean) => {
+    setCompletedSkills(prev => ({
+      ...prev,
+      [skill]: completed
+    }));
+    
+    // If marking a skill as complete, also mark all its topics as complete
+    if (completed) {
+      const skillData = careerData.skills.find(s => s.name === skill);
+      if (skillData) {
+        const newTopics = { ...completedTopics };
+        skillData.topics.forEach(topic => {
+          newTopics[topic] = true;
+        });
+        setCompletedTopics(newTopics);
+      }
+    }
+  };
+  
+  // Toggle topic completion status
+  const handleToggleTopic = (skill: string, topic: string, completed: boolean) => {
+    setCompletedTopics(prev => ({
+      ...prev,
+      [topic]: completed
+    }));
+    
+    // Check if all topics for this skill are completed
+    const skillData = careerData.skills.find(s => s.name === skill);
+    if (skillData) {
+      const allCompleted = skillData.topics.every(t => 
+        completedTopics[t] === true || (t === topic && completed)
+      );
+      
+      if (allCompleted) {
+        setCompletedSkills(prev => ({
+          ...prev,
+          [skill]: true
+        }));
+      } else {
+        setCompletedSkills(prev => ({
+          ...prev,
+          [skill]: false
+        }));
+      }
+    }
+  };
+  
+  // Render loading state
+  if (loading) {
+    return (
+      <PageLayout title="Career Roadmap">
+        <div className="container mx-auto px-4 py-12 flex justify-center items-center">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-lg">Loading your personalized career roadmap...</p>
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
   
   return (
     <PageLayout title="Career Roadmap">
       <div className="container mx-auto px-4 py-12">
-        <Tabs defaultValue="microsoft" onValueChange={setSelectedCompany} className="w-full">
+        {/* Profile customization */}
+        <div className="flex justify-center">
+          <ProfileCustomization 
+            onSave={setProfile} 
+            initialData={profile}
+          />
+        </div>
+        
+        {/* Company selection */}
+        <Tabs defaultValue={selectedCompany} onValueChange={setSelectedCompany} className="w-full">
           <div className="flex justify-center mb-8">
             <TabsList className="glass-card p-1">
               <TabsTrigger value="microsoft" className="data-[state=active]:bg-white/20 px-6 py-3">
@@ -88,45 +201,70 @@ const CareerRoadmap = () => {
             </TabsList>
           </div>
           
+          {/* Progress tracking */}
           <div className="glass-card p-6 md:p-10 mb-8">
-            <h2 className="text-2xl font-semibold mb-2">Your Progress</h2>
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-2xl font-semibold">Your Progress</h2>
+              <span className="text-xl font-bold">{progress}%</span>
+            </div>
             <Progress value={progress} className="h-2 mb-2" />
-            <p className="text-white/70">{progress}% complete towards your {selectedCompany} career goal</p>
+            <p className="text-white/70">Complete towards your {selectedCompany} career goal</p>
+            
+            {/* Career description */}
+            {careerData.description && (
+              <div className="mt-6 p-4 bg-white/5 rounded-lg">
+                <p className="italic text-white/80">{careerData.description}</p>
+              </div>
+            )}
           </div>
           
+          {/* Skills for each company */}
           <TabsContent value="microsoft" className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Technical Skills */}
               <div className="glass-card p-6">
                 <h3 className="text-xl font-semibold mb-4 cosmic-text">Technical Skills</h3>
-                <ul className="space-y-3">
-                  {["Data Structures & Algorithms", "System Design", "C#/.NET", "Azure Cloud Services"].map((skill, index) => (
-                    <li key={index} className="flex items-center cursor-pointer hover:bg-white/5 p-2 rounded-md transition-colors" onClick={() => handleMilestoneClick(skill)}>
-                      {index === 0 ? 
-                        <CheckCircle size={20} className="mr-3 text-green-500" /> : 
-                        <Circle size={20} className="mr-3 text-white/50" />}
-                      {skill}
-                      <ArrowRight size={16} className="ml-auto" />
-                    </li>
-                  ))}
-                </ul>
+                <div className="space-y-1">
+                  {careerData.skills
+                    .filter((skill, index) => index < Math.ceil(careerData.skills.length / 2))
+                    .map((skill, index) => (
+                      <SkillItem 
+                        key={index}
+                        skill={skill.name} 
+                        topics={skill.topics}
+                        isCompleted={completedSkills[skill.name] === true}
+                        onToggleSkill={handleToggleSkill}
+                        onToggleTopic={handleToggleTopic}
+                        completedTopics={completedTopics}
+                        onClick={handleSkillClick}
+                      />
+                    ))}
+                </div>
               </div>
               
+              {/* Soft Skills and Preparation */}
               <div className="glass-card p-6">
-                <h3 className="text-xl font-semibold mb-4 cosmic-text">Interview Preparation</h3>
-                <ul className="space-y-3">
-                  {["Company Values & Culture", "Behavioral Questions", "Technical Interviews", "Virtual Interview Simulator"].map((item, index) => (
-                    <li key={index} className="flex items-center cursor-pointer hover:bg-white/5 p-2 rounded-md transition-colors" onClick={() => handleMilestoneClick(item)}>
-                      {index === 0 ? 
-                        <CheckCircle size={20} className="mr-3 text-green-500" /> : 
-                        <Circle size={20} className="mr-3 text-white/50" />}
-                      {item}
-                      <ArrowRight size={16} className="ml-auto" />
-                    </li>
-                  ))}
-                </ul>
+                <h3 className="text-xl font-semibold mb-4 cosmic-text">Additional Skills</h3>
+                <div className="space-y-1">
+                  {careerData.skills
+                    .filter((skill, index) => index >= Math.ceil(careerData.skills.length / 2))
+                    .map((skill, index) => (
+                      <SkillItem 
+                        key={index}
+                        skill={skill.name} 
+                        topics={skill.topics}
+                        isCompleted={completedSkills[skill.name] === true}
+                        onToggleSkill={handleToggleSkill}
+                        onToggleTopic={handleToggleTopic}
+                        completedTopics={completedTopics}
+                        onClick={handleSkillClick}
+                      />
+                    ))}
+                </div>
               </div>
             </div>
             
+            {/* Resource links */}
             <div className="glass-card p-6">
               <h3 className="text-xl font-semibold mb-4 cosmic-text">Key Resource Links</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -149,35 +287,53 @@ const CareerRoadmap = () => {
             </div>
           </TabsContent>
           
+          {/* Google tab - uses the same skills data but for Google */}
           <TabsContent value="google" className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Technical Skills */}
               <div className="glass-card p-6">
                 <h3 className="text-xl font-semibold mb-4 cosmic-text">Technical Skills</h3>
-                <ul className="space-y-3">
-                  {["Advanced Algorithms", "Distributed Systems", "Machine Learning Basics", "Google Cloud Platform"].map((skill, index) => (
-                    <li key={index} className="flex items-center cursor-pointer hover:bg-white/5 p-2 rounded-md transition-colors" onClick={() => handleMilestoneClick(skill)}>
-                      <Circle size={20} className="mr-3 text-white/50" />
-                      {skill}
-                      <ArrowRight size={16} className="ml-auto" />
-                    </li>
-                  ))}
-                </ul>
+                <div className="space-y-1">
+                  {careerData.skills
+                    .filter((skill, index) => index < Math.ceil(careerData.skills.length / 2))
+                    .map((skill, index) => (
+                      <SkillItem 
+                        key={index}
+                        skill={skill.name} 
+                        topics={skill.topics}
+                        isCompleted={completedSkills[skill.name] === true}
+                        onToggleSkill={handleToggleSkill}
+                        onToggleTopic={handleToggleTopic}
+                        completedTopics={completedTopics}
+                        onClick={handleSkillClick}
+                      />
+                    ))}
+                </div>
               </div>
               
+              {/* Additional Skills */}
               <div className="glass-card p-6">
-                <h3 className="text-xl font-semibold mb-4 cosmic-text">Interview Preparation</h3>
-                <ul className="space-y-3">
-                  {["Google Leadership Principles", "Project Experience Questions", "Technical Problem Solving", "System Design Interview"].map((item, index) => (
-                    <li key={index} className="flex items-center cursor-pointer hover:bg-white/5 p-2 rounded-md transition-colors" onClick={() => handleMilestoneClick(item)}>
-                      <Circle size={20} className="mr-3 text-white/50" />
-                      {item}
-                      <ArrowRight size={16} className="ml-auto" />
-                    </li>
-                  ))}
-                </ul>
+                <h3 className="text-xl font-semibold mb-4 cosmic-text">Additional Skills</h3>
+                <div className="space-y-1">
+                  {careerData.skills
+                    .filter((skill, index) => index >= Math.ceil(careerData.skills.length / 2))
+                    .map((skill, index) => (
+                      <SkillItem 
+                        key={index}
+                        skill={skill.name} 
+                        topics={skill.topics}
+                        isCompleted={completedSkills[skill.name] === true}
+                        onToggleSkill={handleToggleSkill}
+                        onToggleTopic={handleToggleTopic}
+                        completedTopics={completedTopics}
+                        onClick={handleSkillClick}
+                      />
+                    ))}
+                </div>
               </div>
             </div>
             
+            {/* Resource links for Google */}
             <div className="glass-card p-6">
               <h3 className="text-xl font-semibold mb-4 cosmic-text">Key Resource Links</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -194,35 +350,53 @@ const CareerRoadmap = () => {
             </div>
           </TabsContent>
           
+          {/* Startup tab - uses the same skills data but for startup */}
           <TabsContent value="startup" className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Essential Skills */}
               <div className="glass-card p-6">
                 <h3 className="text-xl font-semibold mb-4 cosmic-text">Essential Skills</h3>
-                <ul className="space-y-3">
-                  {["Full-stack Development", "Product Management", "Growth Hacking", "Entrepreneurship Basics"].map((skill, index) => (
-                    <li key={index} className="flex items-center cursor-pointer hover:bg-white/5 p-2 rounded-md transition-colors" onClick={() => handleMilestoneClick(skill)}>
-                      <Circle size={20} className="mr-3 text-white/50" />
-                      {skill}
-                      <ArrowRight size={16} className="ml-auto" />
-                    </li>
-                  ))}
-                </ul>
+                <div className="space-y-1">
+                  {careerData.skills
+                    .filter((skill, index) => index < Math.ceil(careerData.skills.length / 2))
+                    .map((skill, index) => (
+                      <SkillItem 
+                        key={index}
+                        skill={skill.name} 
+                        topics={skill.topics}
+                        isCompleted={completedSkills[skill.name] === true}
+                        onToggleSkill={handleToggleSkill}
+                        onToggleTopic={handleToggleTopic}
+                        completedTopics={completedTopics}
+                        onClick={handleSkillClick}
+                      />
+                    ))}
+                </div>
               </div>
               
+              {/* Action Plan */}
               <div className="glass-card p-6">
                 <h3 className="text-xl font-semibold mb-4 cosmic-text">Action Plan</h3>
-                <ul className="space-y-3">
-                  {["Build MVP", "Market Research", "Fundraising Strategy", "Building a Team"].map((item, index) => (
-                    <li key={index} className="flex items-center cursor-pointer hover:bg-white/5 p-2 rounded-md transition-colors" onClick={() => handleMilestoneClick(item)}>
-                      <Circle size={20} className="mr-3 text-white/50" />
-                      {item}
-                      <ArrowRight size={16} className="ml-auto" />
-                    </li>
-                  ))}
-                </ul>
+                <div className="space-y-1">
+                  {careerData.skills
+                    .filter((skill, index) => index >= Math.ceil(careerData.skills.length / 2))
+                    .map((skill, index) => (
+                      <SkillItem 
+                        key={index}
+                        skill={skill.name} 
+                        topics={skill.topics}
+                        isCompleted={completedSkills[skill.name] === true}
+                        onToggleSkill={handleToggleSkill}
+                        onToggleTopic={handleToggleTopic}
+                        completedTopics={completedTopics}
+                        onClick={handleSkillClick}
+                      />
+                    ))}
+                </div>
               </div>
             </div>
             
+            {/* Startup resources */}
             <div className="glass-card p-6">
               <h3 className="text-xl font-semibold mb-4 cosmic-text">Startup Resources</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -240,13 +414,13 @@ const CareerRoadmap = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Dialog for AI responses */}
+        {/* Dialog for AI responses on skills */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="glass-card max-w-3xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="cosmic-text text-xl">{selectedTopic}</DialogTitle>
+              <DialogTitle className="cosmic-text text-xl">{selectedSkill}</DialogTitle>
               <DialogDescription>
-                AI-powered learning insights for {selectedCompany}
+                Skills insights for your {selectedCompany} career path
               </DialogDescription>
             </DialogHeader>
             
@@ -254,7 +428,7 @@ const CareerRoadmap = () => {
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin mb-4 text-primary" />
-                  <p>Getting insights about {selectedTopic}...</p>
+                  <p>Getting insights about {selectedSkill}...</p>
                 </div>
               ) : (
                 <div className="prose prose-invert max-w-none">
