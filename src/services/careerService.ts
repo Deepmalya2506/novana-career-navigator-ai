@@ -95,18 +95,19 @@ export async function getDreamJobRoadmap(jobTitle: string): Promise<CareerData> 
     Format your response as a structured JSON with this exact format:
 
     {
-      "description": "A motivating overview of the ${jobTitle} role and its importance in the industry (2-3 sentences)",
+      "description": "A motivating overview of the ${jobTitle} role and its importance in the industry (3-4 sentences). Include what this professional does and why it's a valuable career path.",
       "skills": [
         {
           "name": "Essential Skill Name",
           "topics": ["Specific Topic 1", "Specific Topic 2", "Specific Topic 3", "Specific Topic 4"]
         },
-        ... more skills (include 6-7 skills)
+        ... more skills (include 6-8 skills)
       ]
     }
 
-    Include 6-7 essential skills with 4-5 specific subtopics each that are critical for becoming a successful ${jobTitle}.
-    The skills should cover both technical and soft skills where appropriate.
+    Include 6-8 essential skills with 4-5 specific subtopics each that are critical for becoming a successful ${jobTitle}.
+    The skills should cover both technical and soft skills where appropriate, as well as industry-specific knowledge.
+    For each skill topic, be specific and actionable (e.g., instead of "Learn Python", use "Python Data Structures" or "Building APIs with Flask").
     Return ONLY valid JSON without any additional text or formatting.
     `;
 

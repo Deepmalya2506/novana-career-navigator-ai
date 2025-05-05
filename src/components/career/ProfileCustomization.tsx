@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Check, Plus, Save } from 'lucide-react';
+import { Check, Plus, Save, Search } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 
 export interface ProfileData {
   name: string;
@@ -74,6 +75,13 @@ const ProfileCustomization = ({ onSave, initialData }: ProfileCustomizationProps
         description: `Added "${customRole}" as your dream job goal.`,
       });
     }
+  };
+
+  const handleDreamJobChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setProfileData(prev => ({
+      ...prev,
+      dreamJob: e.target.value
+    }));
   };
 
   const handleSave = () => {
@@ -173,28 +181,48 @@ const ProfileCustomization = ({ onSave, initialData }: ProfileCustomizationProps
                 ))}
               </div>
               
-              <div className="mt-4">
-                <label className="text-sm font-medium mb-1 block">Dream Job (Custom Role)</label>
-                <div className="flex gap-2">
+              <div className="mt-6 border-t border-white/10 pt-4">
+                <label className="text-xl font-medium mb-2 block cosmic-text">Dream Job</label>
+                <p className="text-sm text-white/70 mb-3">
+                  Enter your dream job title and we'll generate a personalized roadmap to help you get there
+                </p>
+                
+                <div className="space-y-4">
                   <Input
-                    value={customRole}
-                    onChange={(e) => setCustomRole(e.target.value)}
-                    placeholder="Enter your dream job title"
+                    value={profileData.dreamJob || ''}
+                    onChange={handleDreamJobChange}
+                    placeholder="E.g., AI Research Scientist, Game Developer, Cloud Architect"
                     className="glass-input"
                   />
-                  <Button 
-                    onClick={handleAddCustomRole}
-                    variant="outline"
-                    size="icon"
-                    className="shrink-0"
-                    disabled={!customRole.trim()}
-                  >
-                    <Plus size={16} />
-                  </Button>
+                  
+                  <div className="flex items-center space-x-2">
+                    <div className="flex-1 h-px bg-white/10"></div>
+                    <span className="text-xs text-white/50">OR</span>
+                    <div className="flex-1 h-px bg-white/10"></div>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Input
+                      value={customRole}
+                      onChange={(e) => setCustomRole(e.target.value)}
+                      placeholder="Add custom role"
+                      className="glass-input"
+                    />
+                    <Button 
+                      onClick={handleAddCustomRole}
+                      variant="outline"
+                      size="icon"
+                      className="shrink-0"
+                      disabled={!customRole.trim()}
+                    >
+                      <Plus size={16} />
+                    </Button>
+                  </div>
+                  
+                  <p className="text-sm text-white/60">
+                    This will help us tailor your career roadmap with specific skills and resources
+                  </p>
                 </div>
-                <p className="text-sm text-white/60 mt-1">
-                  We'll generate a personalized roadmap for your dream job
-                </p>
               </div>
             </div>
           </div>

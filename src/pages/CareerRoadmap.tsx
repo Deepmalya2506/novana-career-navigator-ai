@@ -3,7 +3,7 @@ import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { BriefcaseBusiness, Cpu, Rocket, Loader2 } from 'lucide-react';
+import { BriefcaseBusiness, Cpu, Rocket, Loader2, BookOpen, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import ProfileCustomization, { ProfileData } from '@/components/career/ProfileCustomization';
@@ -225,6 +225,23 @@ const CareerRoadmap = () => {
           />
         </div>
         
+        {/* Career objective banner when dream job is set */}
+        {profile.dreamJob && (
+          <div className="glass-card p-6 mb-8 text-center">
+            <h2 className="text-2xl cosmic-text mb-2">Your Career Objective</h2>
+            <div className="flex items-center justify-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mr-4">
+                <Rocket size={30} className="text-primary" />
+              </div>
+              <h3 className="text-3xl font-bold">{profile.dreamJob}</h3>
+            </div>
+            <p className="text-white/70 max-w-2xl mx-auto">
+              We've generated a personalized roadmap to help you become a {profile.dreamJob}. 
+              Select the "Dream Job" tab below to see your custom skill path and resources.
+            </p>
+          </div>
+        )}
+        
         {/* Company selection */}
         <Tabs defaultValue={selectedCompany} onValueChange={setSelectedCompany} className="w-full">
           <div className="flex justify-center mb-8">
@@ -239,7 +256,7 @@ const CareerRoadmap = () => {
               </TabsTrigger>
               <TabsTrigger value="startup" className="data-[state=active]:bg-white/20 px-6 py-3">
                 <Rocket className="mr-2 h-5 w-5" />
-                {profile.dreamJob || "Startup"}
+                {profile.dreamJob || "Dream Job"}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -326,12 +343,6 @@ const CareerRoadmap = () => {
                 </Button>
               </div>
             </div>
-            
-            <div className="text-center">
-              <Button className="cosmic-gradient text-white font-medium py-6 px-8 rounded-full">
-                Start Virtual Interview
-              </Button>
-            </div>
           </TabsContent>
           
           {/* Google tab - uses the same skills data but for Google */}
@@ -397,71 +408,104 @@ const CareerRoadmap = () => {
             </div>
           </TabsContent>
           
-          {/* Startup/Dream Job tab */}
+          {/* Dream Job tab */}
           <TabsContent value="startup" className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Essential Skills */}
-              <div className="glass-card p-6">
-                <h3 className="text-xl font-semibold mb-4 cosmic-text">
-                  {profile.dreamJob ? `${profile.dreamJob} Skills` : "Essential Skills"}
-                </h3>
-                <div className="space-y-1">
-                  {careerData.skills
-                    .filter((skill, index) => index < Math.ceil(careerData.skills.length / 2))
-                    .map((skill, index) => (
-                      <SkillItem 
-                        key={index}
-                        skill={skill.name} 
-                        topics={skill.topics}
-                        isCompleted={completedSkills[skill.name] === true}
-                        onToggleSkill={handleToggleSkill}
-                        onToggleTopic={handleToggleTopic}
-                        completedTopics={completedTopics}
-                        onClick={handleSkillClick}
-                      />
-                    ))}
+            {!profile.dreamJob ? (
+              <div className="glass-card p-12 text-center">
+                <div className="w-20 h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                  <Search className="h-10 w-10 text-primary" />
                 </div>
+                <h3 className="text-2xl font-semibold mb-3 cosmic-text">Define Your Dream Job</h3>
+                <p className="text-white/70 mb-6 max-w-lg mx-auto">
+                  Tell us your dream job title and we'll create a personalized career roadmap 
+                  with all the skills and resources you need to achieve your goal.
+                </p>
+                <Button 
+                  onClick={() => setIsDialogOpen(true)}
+                  className="cosmic-gradient text-white py-2 px-6"
+                >
+                  Set Career Objective
+                </Button>
               </div>
-              
-              {/* Action Plan */}
-              <div className="glass-card p-6">
-                <h3 className="text-xl font-semibold mb-4 cosmic-text">Action Plan</h3>
-                <div className="space-y-1">
-                  {careerData.skills
-                    .filter((skill, index) => index >= Math.ceil(careerData.skills.length / 2))
-                    .map((skill, index) => (
-                      <SkillItem 
-                        key={index}
-                        skill={skill.name} 
-                        topics={skill.topics}
-                        isCompleted={completedSkills[skill.name] === true}
-                        onToggleSkill={handleToggleSkill}
-                        onToggleTopic={handleToggleTopic}
-                        completedTopics={completedTopics}
-                        onClick={handleSkillClick}
-                      />
-                    ))}
+            ) : (
+              <>
+                <div className="glass-card p-6">
+                  <h3 className="text-xl font-semibold mb-2 cosmic-text flex items-center">
+                    <BookOpen className="mr-2" size={20} />
+                    Roadmap to Becoming a {profile.dreamJob}
+                  </h3>
+                  
+                  {careerData.description && (
+                    <p className="mb-4 text-white/90">{careerData.description}</p>
+                  )}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Essential Skills */}
+                    <div>
+                      <h4 className="text-lg font-medium mb-3 text-white/80">Core Skills</h4>
+                      <div className="space-y-1">
+                        {careerData.skills
+                          .filter((skill, index) => index < Math.ceil(careerData.skills.length / 2))
+                          .map((skill, index) => (
+                            <SkillItem 
+                              key={index}
+                              skill={skill.name} 
+                              topics={skill.topics}
+                              isCompleted={completedSkills[skill.name] === true}
+                              onToggleSkill={handleToggleSkill}
+                              onToggleTopic={handleToggleTopic}
+                              completedTopics={completedTopics}
+                              onClick={handleSkillClick}
+                            />
+                          ))}
+                      </div>
+                    </div>
+                    
+                    {/* Additional Skills */}
+                    <div>
+                      <h4 className="text-lg font-medium mb-3 text-white/80">Advanced & Specialized Skills</h4>
+                      <div className="space-y-1">
+                        {careerData.skills
+                          .filter((skill, index) => index >= Math.ceil(careerData.skills.length / 2))
+                          .map((skill, index) => (
+                            <SkillItem 
+                              key={index}
+                              skill={skill.name} 
+                              topics={skill.topics}
+                              isCompleted={completedSkills[skill.name] === true}
+                              onToggleSkill={handleToggleSkill}
+                              onToggleTopic={handleToggleTopic}
+                              completedTopics={completedTopics}
+                              onClick={handleSkillClick}
+                            />
+                          ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            
-            {/* Resources */}
-            <div className="glass-card p-6">
-              <h3 className="text-xl font-semibold mb-4 cosmic-text">
-                {profile.dreamJob ? `${profile.dreamJob} Resources` : "Startup Resources"}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Button variant="outline" className="glass-button">
-                  {profile.dreamJob ? `${profile.dreamJob} Learning Path` : "Y Combinator Resources"}
-                </Button>
-                <Button variant="outline" className="glass-button">
-                  {profile.dreamJob ? "Industry Forums" : "Startup Pitch Templates"}
-                </Button>
-                <Button variant="outline" className="glass-button">
-                  {profile.dreamJob ? "Expert Interviews" : "Funding Opportunities"}
-                </Button>
-              </div>
-            </div>
+                
+                {/* Learning Resources */}
+                <div className="glass-card p-6">
+                  <h3 className="text-xl font-semibold mb-4 cosmic-text">
+                    {profile.dreamJob} Learning Resources
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Button variant="outline" className="glass-button flex items-center justify-center">
+                      <BookOpen className="mr-2" size={16} />
+                      Online Courses
+                    </Button>
+                    <Button variant="outline" className="glass-button flex items-center justify-center">
+                      <Search className="mr-2" size={16} />
+                      Industry Certifications
+                    </Button>
+                    <Button variant="outline" className="glass-button flex items-center justify-center">
+                      <BriefcaseBusiness className="mr-2" size={16} />
+                      Job Interview Prep
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
           </TabsContent>
         </Tabs>
 
@@ -471,7 +515,7 @@ const CareerRoadmap = () => {
             <DialogHeader>
               <DialogTitle className="cosmic-text text-xl">{selectedSkill}</DialogTitle>
               <DialogDescription>
-                Skills insights for your {selectedCompany} career path
+                Skills insights for your {selectedCompany === 'startup' ? (profile.dreamJob || 'dream job') : selectedCompany} career path
               </DialogDescription>
             </DialogHeader>
             
