@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Check } from 'lucide-react';
+import { Check, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface ProfileData {
@@ -12,6 +12,7 @@ interface ProfileData {
   objective: string;
   goals: string;
   targetRoles: string[];
+  dreamJob?: string;
 }
 
 interface ProfileCustomizationProps {
@@ -27,8 +28,10 @@ const ProfileCustomization = ({ onSave, initialData }: ProfileCustomizationProps
       objective: '',
       goals: '',
       targetRoles: ['Software Engineer'],
+      dreamJob: '',
     }
   );
+  const [customRole, setCustomRole] = useState('');
   const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -53,6 +56,22 @@ const ProfileCustomization = ({ onSave, initialData }: ProfileCustomizationProps
         };
       }
     });
+  };
+
+  const handleAddCustomRole = () => {
+    if (customRole.trim()) {
+      setProfileData((prev) => ({
+        ...prev,
+        targetRoles: [...prev.targetRoles, customRole.trim()],
+        dreamJob: customRole.trim(),
+      }));
+      setCustomRole('');
+      
+      toast({
+        title: "Dream Job Added",
+        description: `Added "${customRole}" as your dream job goal.`,
+      });
+    }
   };
 
   const handleSave = () => {
@@ -145,6 +164,30 @@ const ProfileCustomization = ({ onSave, initialData }: ProfileCustomizationProps
                     </div>
                   </div>
                 ))}
+              </div>
+              
+              <div className="mt-4">
+                <label className="text-sm font-medium mb-1 block">Dream Job (Custom Role)</label>
+                <div className="flex gap-2">
+                  <Input
+                    value={customRole}
+                    onChange={(e) => setCustomRole(e.target.value)}
+                    placeholder="Enter your dream job title"
+                    className="glass-input"
+                  />
+                  <Button 
+                    onClick={handleAddCustomRole}
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0"
+                    disabled={!customRole.trim()}
+                  >
+                    <Plus size={16} />
+                  </Button>
+                </div>
+                <p className="text-sm text-white/60 mt-1">
+                  We'll generate a personalized roadmap for your dream job
+                </p>
               </div>
             </div>
           </div>

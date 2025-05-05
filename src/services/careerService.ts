@@ -87,3 +87,55 @@ export async function getSkillDetails(skill: string): Promise<string> {
     return "Failed to load skill details. Please try again later.";
   }
 }
+
+export async function getDreamJobRoadmap(jobTitle: string): Promise<CareerData> {
+  try {
+    const prompt = `
+    As a career advisor, create a comprehensive roadmap for someone aspiring to become a ${jobTitle}.
+    Format your response as a structured JSON with this exact format:
+
+    {
+      "description": "A motivating overview of the ${jobTitle} role and its importance in the industry (2-3 sentences)",
+      "skills": [
+        {
+          "name": "Essential Skill Name",
+          "topics": ["Specific Topic 1", "Specific Topic 2", "Specific Topic 3", "Specific Topic 4"]
+        },
+        ... more skills (include 6-7 skills)
+      ]
+    }
+
+    Include 6-7 essential skills with 4-5 specific subtopics each that are critical for becoming a successful ${jobTitle}.
+    The skills should cover both technical and soft skills where appropriate.
+    Return ONLY valid JSON without any additional text or formatting.
+    `;
+
+    const response = await askGemini(prompt);
+    
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    
+    try {
+      // Clean the response to ensure it's valid JSON
+      let cleanJson = response.text.trim();
+      if (cleanJson.startsWith('```json')) {
+        cleanJson = cleanJson.replace(/```json|```/g, '').trim();
+      }
+      
+      const data = JSON.parse(cleanJson) as CareerData;
+      
+      return {
+        skills: data.skills || [],
+        description: data.description || ''
+      };
+    } catch (parseError) {
+      console.error("Failed to parse Gemini response for dream job:", parseError);
+      console.log("Raw response:", response.text);
+      throw new Error("Failed to parse dream job roadmap");
+    }
+  } catch (error) {
+    console.error("Error fetching dream job roadmap:", error);
+    return { skills: [], description: "Failed to generate a roadmap for your dream job. Please try again." };
+  }
+}
