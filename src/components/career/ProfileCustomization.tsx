@@ -1,13 +1,13 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Check, Plus } from 'lucide-react';
+import { Check, Plus, Save } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
-interface ProfileData {
+export interface ProfileData {
   name: string;
   objective: string;
   goals: string;
@@ -19,6 +19,8 @@ interface ProfileCustomizationProps {
   onSave: (profileData: ProfileData) => void;
   initialData?: ProfileData;
 }
+
+const PROFILE_STORAGE_KEY = 'careerProfileData';
 
 const ProfileCustomization = ({ onSave, initialData }: ProfileCustomizationProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -75,11 +77,16 @@ const ProfileCustomization = ({ onSave, initialData }: ProfileCustomizationProps
   };
 
   const handleSave = () => {
+    // Save to localStorage
+    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profileData));
+    
+    // Call onSave prop to update parent component
     onSave(profileData);
     setIsDialogOpen(false);
+    
     toast({
-      title: "Profile Updated",
-      description: "Your career profile has been updated successfully.",
+      title: "Profile Saved",
+      description: "Your career profile has been saved successfully.",
     });
   };
 
@@ -197,6 +204,7 @@ const ProfileCustomization = ({ onSave, initialData }: ProfileCustomizationProps
               Cancel
             </Button>
             <Button onClick={handleSave}>
+              <Save className="mr-2" size={16} />
               Save Profile
             </Button>
           </div>

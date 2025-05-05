@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
@@ -7,16 +6,12 @@ import { Progress } from '@/components/ui/progress';
 import { BriefcaseBusiness, Cpu, Rocket, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import ProfileCustomization from '@/components/career/ProfileCustomization';
+import ProfileCustomization, { ProfileData } from '@/components/career/ProfileCustomization';
 import SkillItem from '@/components/career/SkillItem';
-import { getCareerSkills, getSkillDetails, SkillData, CareerData } from '@/services/careerService';
+import { getCareerSkills, getSkillDetails, getDreamJobRoadmap, SkillData, CareerData } from '@/services/careerService';
 
-interface ProfileData {
-  name: string;
-  objective: string;
-  goals: string;
-  targetRoles: string[];
-}
+const PROFILE_STORAGE_KEY = 'careerProfileData';
+const PROGRESS_STORAGE_KEY = 'careerProgressData';
 
 const CareerRoadmap = () => {
   // State management
@@ -41,6 +36,41 @@ const CareerRoadmap = () => {
   const [completedSkills, setCompletedSkills] = useState<Record<string, boolean>>({});
   const [completedTopics, setCompletedTopics] = useState<Record<string, boolean>>({});
   
+  // Load saved profile data on component mount
+  useEffect(() => {
+    const loadProfileData = () => {
+      try {
+        const savedProfile = localStorage.getItem(PROFILE_STORAGE_KEY);
+        if (savedProfile) {
+          setProfile(JSON.parse(savedProfile));
+        }
+        
+        const savedProgress = localStorage.getItem(PROGRESS_STORAGE_KEY);
+        if (savedProgress) {
+          const progressData = JSON.parse(savedProgress);
+          setCompletedSkills(progressData.completedSkills || {});
+          setCompletedTopics(progressData.completedTopics || {});
+        }
+      } catch (error) {
+        console.error("Error loading saved profile data:", error);
+      }
+    };
+    
+    loadProfileData();
+  }, []);
+  
+  // Save progress data whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({
+        completedSkills,
+        completedTopics
+      }));
+    } catch (error) {
+      console.error("Error saving progress data:", error);
+    }
+  }, [completedSkills, completedTopics]);
+  
   // Calculate progress based on completed skills and topics
   useEffect(() => {
     if (careerData.skills.length === 0) return;
@@ -62,13 +92,21 @@ const CareerRoadmap = () => {
     setProgress(newProgress);
   }, [completedSkills, completedTopics, careerData.skills]);
   
-  // Load career data when company changes
+  // Load career data when company or profile changes
   useEffect(() => {
     const fetchCareerData = async () => {
       setLoading(true);
       try {
-        const selectedRole = profile.targetRoles.length > 0 ? profile.targetRoles[0] : 'Software Engineer';
-        const data = await getCareerSkills(selectedRole, selectedCompany);
+        let data: CareerData;
+        
+        // Use dream job roadmap if available, otherwise use regular career skills
+        if (profile.dreamJob && selectedCompany === 'startup') {
+          data = await getDreamJobRoadmap(profile.dreamJob);
+        } else {
+          const selectedRole = profile.targetRoles.length > 0 ? profile.targetRoles[0] : 'Software Engineer';
+          data = await getCareerSkills(selectedRole, selectedCompany);
+        }
+        
         setCareerData(data);
       } catch (error) {
         console.error('Failed to fetch career data:', error);
@@ -83,7 +121,7 @@ const CareerRoadmap = () => {
     };
     
     fetchCareerData();
-  }, [selectedCompany, profile.targetRoles, toast]);
+  }, [selectedCompany, profile.targetRoles, profile.dreamJob, toast]);
   
   // Handle skill selection
   const handleSkillClick = async (skill: string) => {
@@ -157,6 +195,11 @@ const CareerRoadmap = () => {
     }
   };
   
+  // Handle profile data updates
+  const handleProfileUpdate = (updatedProfile: ProfileData) => {
+    setProfile(updatedProfile);
+  };
+  
   // Render loading state
   if (loading) {
     return (
@@ -177,7 +220,7 @@ const CareerRoadmap = () => {
         {/* Profile customization */}
         <div className="flex justify-center">
           <ProfileCustomization 
-            onSave={setProfile} 
+            onSave={handleProfileUpdate} 
             initialData={profile}
           />
         </div>
@@ -196,7 +239,7 @@ const CareerRoadmap = () => {
               </TabsTrigger>
               <TabsTrigger value="startup" className="data-[state=active]:bg-white/20 px-6 py-3">
                 <Rocket className="mr-2 h-5 w-5" />
-                Startup
+                {profile.dreamJob || "Startup"}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -208,7 +251,11 @@ const CareerRoadmap = () => {
               <span className="text-xl font-bold">{progress}%</span>
             </div>
             <Progress value={progress} className="h-2 mb-2" />
-            <p className="text-white/70">Complete towards your {selectedCompany} career goal</p>
+            <p className="text-white/70">
+              {selectedCompany === 'startup' && profile.dreamJob
+                ? `Complete towards your ${profile.dreamJob} career goal`
+                : `Complete towards your ${selectedCompany} career goal`}
+            </p>
             
             {/* Career description */}
             {careerData.description && (
@@ -350,12 +397,14 @@ const CareerRoadmap = () => {
             </div>
           </TabsContent>
           
-          {/* Startup tab - uses the same skills data but for startup */}
+          {/* Startup/Dream Job tab */}
           <TabsContent value="startup" className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Essential Skills */}
               <div className="glass-card p-6">
-                <h3 className="text-xl font-semibold mb-4 cosmic-text">Essential Skills</h3>
+                <h3 className="text-xl font-semibold mb-4 cosmic-text">
+                  {profile.dreamJob ? `${profile.dreamJob} Skills` : "Essential Skills"}
+                </h3>
                 <div className="space-y-1">
                   {careerData.skills
                     .filter((skill, index) => index < Math.ceil(careerData.skills.length / 2))
@@ -396,18 +445,20 @@ const CareerRoadmap = () => {
               </div>
             </div>
             
-            {/* Startup resources */}
+            {/* Resources */}
             <div className="glass-card p-6">
-              <h3 className="text-xl font-semibold mb-4 cosmic-text">Startup Resources</h3>
+              <h3 className="text-xl font-semibold mb-4 cosmic-text">
+                {profile.dreamJob ? `${profile.dreamJob} Resources` : "Startup Resources"}
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Button variant="outline" className="glass-button">
-                  Y Combinator Resources
+                  {profile.dreamJob ? `${profile.dreamJob} Learning Path` : "Y Combinator Resources"}
                 </Button>
                 <Button variant="outline" className="glass-button">
-                  Startup Pitch Templates
+                  {profile.dreamJob ? "Industry Forums" : "Startup Pitch Templates"}
                 </Button>
                 <Button variant="outline" className="glass-button">
-                  Funding Opportunities
+                  {profile.dreamJob ? "Expert Interviews" : "Funding Opportunities"}
                 </Button>
               </div>
             </div>
