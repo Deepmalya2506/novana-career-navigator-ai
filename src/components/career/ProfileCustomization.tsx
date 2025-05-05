@@ -119,7 +119,7 @@ const ProfileCustomization = ({ onSave, initialData }: ProfileCustomizationProps
       </Button>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="glass-card max-w-2xl max-h-[96vh] overflow-y-auto mx-auto my-[2vh] fixed inset-x-[2%] top-[2vh] bottom-[2vh] left-1/2 transform -translate-x-1/2">
+        <DialogContent className="glass-card max-w-2xl max-h-[96vh] overflow-y-auto fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[96%] m-auto">
           <DialogHeader>
             <DialogTitle className="cosmic-text text-xl">Customize Your Career Profile</DialogTitle>
           </DialogHeader>
