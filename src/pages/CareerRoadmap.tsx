@@ -421,7 +421,7 @@ const CareerRoadmap = () => {
                   with all the skills and resources you need to achieve your goal.
                 </p>
                 <Button 
-                  onClick={() => setIsDialogOpen(true)}
+                  onClick={() => setDialogOpen(true)}
                   className="cosmic-gradient text-white py-2 px-6"
                 >
                   Set Career Objective
