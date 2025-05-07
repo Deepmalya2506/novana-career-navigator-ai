@@ -21,6 +21,7 @@ import Footer from '@/components/layout/Footer';
 import FeatureCard from '@/components/ui/FeatureCard';
 import FloatingOrb from '@/components/ui/FloatingOrb';
 import GlowBadge from '@/components/ui/GlowBadge';
+import BubbleBackground from '@/components/ui/BubbleBackground';
 
 const Index = () => {
   return (
@@ -29,6 +30,12 @@ const Index = () => {
       
       {/* Hero Section */}
       <section className="container mx-auto px-4 pt-32 pb-16 relative">
+        <BubbleBackground 
+          count={18} 
+          maxSize={150} 
+          minSize={20}
+        />
+        
         <FloatingOrb 
           size="lg" 
           className="absolute -top-20 -right-20 opacity-30 z-0" 
