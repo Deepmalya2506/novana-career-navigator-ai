@@ -133,6 +133,112 @@ export async function getRelevantEvents(skills: string[], goals: string[], dream
   }
 }
 
+// Upload and process resume
+export async function uploadResume(file: File): Promise<string> {
+  // This is a placeholder - in a real implementation, you would upload to a server
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(`https://example.com/resumes/${file.name}`);
+    }, 1000);
+  });
+}
+
+// Extract text from resume file
+export async function extractResumeText(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = async (event) => {
+      try {
+        const fileContent = event.target?.result as string;
+        
+        // In a real implementation, you would use a proper PDF parser
+        // This is a simplified version that just returns the first 500 chars
+        let extractedText = "Resume content extracted: ";
+        
+        if (file.type === 'application/pdf') {
+          extractedText += "(PDF parsing would happen here in a real implementation)";
+        } else if (file.type === 'text/plain') {
+          extractedText += fileContent.substring(0, 500);
+        } else {
+          extractedText += "(Document parsing would happen here in a real implementation)";
+        }
+        
+        // You could also send this to Gemini to extract key information
+        resolve(extractedText);
+      } catch (error) {
+        reject(error);
+      }
+    };
+    
+    reader.onerror = () => {
+      reject(new Error("Error reading file"));
+    };
+    
+    if (file.type === 'text/plain') {
+      reader.readAsText(file);
+    } else {
+      // For other file types, we'd need proper parsers
+      // For this demo, we'll just simulate extraction
+      setTimeout(() => {
+        resolve("Extracted resume content (simulated for non-text files)");
+      }, 1000);
+    }
+  });
+}
+
+// Generate a LinkedIn post based on user data and tone
+export async function generateLinkedInPost(
+  data: { 
+    achievement: string, 
+    resumeText?: string, 
+    skills?: string[], 
+    goals?: string, 
+    dreamJob?: string 
+  }, 
+  tone: string = 'professional'
+): Promise<GeminiResponse> {
+  try {
+    let contentToUse = data.achievement;
+    
+    if (data.resumeText) {
+      contentToUse += `\n\nResume Highlights:\n${data.resumeText}`;
+    }
+    
+    if (data.skills?.length) {
+      contentToUse += `\n\nSkills: ${data.skills.join(', ')}`;
+    }
+    
+    if (data.goals) {
+      contentToUse += `\n\nGoals: ${data.goals}`;
+    }
+    
+    if (data.dreamJob) {
+      contentToUse += `\n\nDream Job: ${data.dreamJob}`;
+    }
+    
+    const prompt = `Write an engaging LinkedIn post about these professional achievements and information: "${contentToUse}".
+    
+    Use a ${tone} tone. The post should:
+    - Be 2-3 paragraphs maximum
+    - Include relevant hashtags at the end
+    - Be formatted in a way that's easy to read on LinkedIn
+    - Use some appropriate emojis but don't overdo it
+    - Sound authentic and conversational
+    - End with a question or call-to-action to encourage engagement
+    
+    The post should be ready to copy and paste to LinkedIn without any additional editing needed.`;
+    
+    return await askGemini(prompt);
+  } catch (error) {
+    console.error("Error generating LinkedIn post:", error);
+    return { 
+      text: "",
+      error: error instanceof Error ? error.message : "Unknown error occurred" 
+    };
+  }
+}
+
 // Hook for using Gemini in components
 export const useGemini = () => {
   return {
@@ -141,6 +247,9 @@ export const useGemini = () => {
     },
     getRelevantEvents: async (skills: string[], goals: string[], dreamJob?: string): Promise<EventData[]> => {
       return await getRelevantEvents(skills, goals, dreamJob);
+    },
+    generateLinkedInPost: async (data: any, tone: string): Promise<GeminiResponse> => {
+      return await generateLinkedInPost(data, tone);
     }
   };
 };
