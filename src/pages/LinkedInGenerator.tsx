@@ -5,9 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { 
-  Linkedin, 
   Copy, 
   Upload, 
   MessageSquarePlus, 
@@ -18,7 +16,6 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useGemini, uploadResume, extractResumeText } from '@/utils/geminiService';
 import { 
   Select,
@@ -46,8 +43,6 @@ const LinkedInGenerator = () => {
   const [resumeText, setResumeText] = useState('');
   const [useCareerData, setUseCareerData] = useState(false);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
-  const [linkedInConnected, setLinkedInConnected] = useState(false);
-  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [editMode, setEditMode] = useState(false);
 
@@ -92,19 +87,6 @@ const LinkedInGenerator = () => {
         });
       }
     }
-  };
-  
-  const handleLinkedInConnect = () => {
-    setShowAuthDialog(true);
-    // In a real implementation, this would initiate OAuth flow
-    setTimeout(() => {
-      setLinkedInConnected(true);
-      setShowAuthDialog(false);
-      toast({
-        title: "LinkedIn Connected",
-        description: "Your LinkedIn account has been successfully connected.",
-      });
-    }, 2000); // Simulating the OAuth flow with a delay
   };
   
   const toggleUseCareerData = () => {
@@ -200,24 +182,6 @@ const LinkedInGenerator = () => {
     });
   };
   
-  const handleShare = () => {
-    if (!linkedInConnected) {
-      handleLinkedInConnect();
-      return;
-    }
-    
-    // Simulating posting to LinkedIn
-    toast({
-      title: "Post Shared!",
-      description: "Your post has been shared to LinkedIn.",
-      action: (
-        <div className="h-8 w-8 bg-white/10 rounded-full flex items-center justify-center">
-          <Linkedin className="h-4 w-4 text-blue-500" />
-        </div>
-      ),
-    });
-  };
-  
   const handleEdit = () => {
     setEditMode(true);
   };
@@ -238,22 +202,6 @@ const LinkedInGenerator = () => {
     <PageLayout title="LinkedIn Post Generator">
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
-          {/* LinkedIn Connection Status */}
-          <div className="glass-card p-4 mb-6 flex items-center justify-between">
-            <div className="flex items-center">
-              <Linkedin className={`mr-3 h-5 w-5 ${linkedInConnected ? 'text-blue-500' : 'text-white/50'}`} />
-              <span>
-                {linkedInConnected 
-                  ? "LinkedIn Account Connected" 
-                  : "Connect your LinkedIn account to post directly"}
-              </span>
-            </div>
-            {!linkedInConnected && (
-              <Button onClick={handleLinkedInConnect} variant="outline" className="glass-button">
-                Connect LinkedIn
-              </Button>
-            )}
-          </div>
 
           {/* Input Section */}
           <div className="glass-card p-8 mb-8">
@@ -420,36 +368,18 @@ const LinkedInGenerator = () => {
               </div>
               
               <div className="text-center">
-                <Button className="cosmic-gradient text-white px-8" onClick={handleShare}>
-                  <Linkedin className="mr-2 h-5 w-5" />
-                  {linkedInConnected ? "Post to LinkedIn" : "Connect & Post to LinkedIn"}
+                <Button 
+                  className="cosmic-gradient text-white px-8" 
+                  onClick={handleCopy}
+                >
+                  <Copy className="mr-2 h-5 w-5" />
+                  Copy to Clipboard
                 </Button>
               </div>
             </div>
           )}
         </div>
       </div>
-
-      {/* LinkedIn Authentication Dialog */}
-      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
-        <DialogContent className="glass-card border-white/20">
-          <DialogHeader>
-            <DialogTitle>Connect to LinkedIn</DialogTitle>
-            <DialogDescription>
-              Link your LinkedIn account to post directly from this application.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="flex items-center justify-center">
-              <Skeleton className="h-20 w-20 rounded-full" />
-            </div>
-            <div className="text-center mt-4">
-              <p className="text-sm text-white/70">Authenticating with LinkedIn...</p>
-              <Progress value={60} className="h-1 mt-4 bg-white/10" />
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </PageLayout>
   );
 };
