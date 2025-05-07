@@ -1,3 +1,4 @@
+
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Use environment variable instead of hardcoded key
@@ -15,7 +16,16 @@ export interface GeminiResponse {
  */
 export async function askGemini(prompt: string): Promise<GeminiResponse> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Using gemini-2.0-flash model for enhanced speed and capabilities
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.0-flash",
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 4096,
+      },
+    });
     const result = await model.generateContent(prompt);
     const response = result.response;
 
