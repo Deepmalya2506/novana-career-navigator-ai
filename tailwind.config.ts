@@ -104,14 +104,19 @@ export default {
 				'rotate-slow': {
 					'0%': { transform: 'rotate(0deg)' },
 					'100%': { transform: 'rotate(360deg)' },
-				}
+				},
+                'shine': {
+                    'from': { transform: 'translateX(-100%)' },
+                    'to': { transform: 'translateX(100%)' }
+                }
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'float': 'float 6s ease-in-out infinite',
 				'pulse-glow': 'pulse-glow 4s ease-in-out infinite',
-				'rotate-slow': 'rotate-slow 20s linear infinite'
+				'rotate-slow': 'rotate-slow 20s linear infinite',
+                'shine': 'shine 1.5s infinite'
 			},
 			backgroundImage: {
 				'cosmic': "url('/public/lovable-uploads/3eac71df-dc5d-44c1-8f2a-2b557ef49a1f.png')"

@@ -1,6 +1,13 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
+import HeroSection from '@/components/home/HeroSection';
+import FeatureCard from '@/components/ui/FeatureCard';
+import FloatingOrb from '@/components/ui/FloatingOrb';
+import GlassButton from '@/components/ui/GlassButton';
+import GlowBadge from '@/components/ui/GlowBadge';
+import BubbleBackground from '@/components/ui/BubbleBackground';
 import { 
   Award, 
   BookOpen, 
@@ -15,62 +22,16 @@ import {
   Target
 } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
-import FeatureCard from '@/components/ui/FeatureCard';
-import FloatingOrb from '@/components/ui/FloatingOrb';
-import GlowBadge from '@/components/ui/GlowBadge';
-import BubbleBackground from '@/components/ui/BubbleBackground';
-
 const Index = () => {
   return (
     <div className="flex min-h-screen flex-col overflow-hidden">
       <Header />
       
       {/* Hero Section */}
-      <section className="container mx-auto px-4 pt-32 pb-16 relative">
-        <BubbleBackground 
-          count={18} 
-          maxSize={150} 
-          minSize={20}
-        />
-        
-        <FloatingOrb 
-          size="lg" 
-          className="absolute -top-20 -right-20 opacity-30 z-0" 
-        />
-        
-        <div className="relative z-10 max-w-3xl mx-auto text-center">
-          <div className="flex justify-center mb-6 space-x-4">
-            <GlowBadge color="blue">AI-Powered</GlowBadge>
-            <GlowBadge color="purple">Career Development</GlowBadge>
-            <GlowBadge color="pink">Personalized</GlowBadge>
-          </div>
-          
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 animated-gradient-text">
-            NOVANA
-          </h1>
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 text-white">
-            Your AI-Powered Career Pilot
-          </h2>
-          <p className="text-xl text-white/80 mb-10">
-            Disappear from Crowd | Evolve in silence | Rise with Radiance
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="cosmic-gradient text-white font-medium py-6 px-8 rounded-full hover:opacity-90 transition-opacity">
-              Get Started
-            </Button>
-            <Button variant="outline" className="border-white/20 text-white hover:border-white/40 py-6 px-8 rounded-full">
-              Learn More
-            </Button>
-          </div>
-        </div>
-      </section>
+      <HeroSection />
       
       {/* Features Section */}
-      <section className="container mx-auto px-4 py-16">
+      <section className="container mx-auto px-4 py-16 relative z-10">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4 cosmic-text">Empowering Features</h2>
           <p className="text-white/70 max-w-2xl mx-auto">
