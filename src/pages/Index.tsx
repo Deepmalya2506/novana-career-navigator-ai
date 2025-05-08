@@ -25,9 +25,7 @@ const Index = () => {
             <GlowBadge color="pink">Personalized</GlowBadge>
           </div>
           
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 animated-gradient-text">
-            NOVANA
-          </h1>
+          <h1 className="text-5xl mb-6 animated-gradient-text font-bold md:text-8xl">novana</h1>
           <h2 className="text-2xl md:text-3xl font-bold mb-6 text-white">
             Your AI-Powered Career Pilot
           </h2>
