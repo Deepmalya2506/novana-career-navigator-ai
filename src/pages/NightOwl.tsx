@@ -1,14 +1,19 @@
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { MoonStar, PlayCircle, PauseCircle, Send, Volume2 } from 'lucide-react';
+import { Send, MoonStar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useGemini } from '@/utils/geminiService';
+import StarfieldBackground from '@/components/ui/StarfieldBackground';
+import MoonPhaseDisplay from '@/components/nightowl/MoonPhaseDisplay';
+import MusicPlayer from '@/components/nightowl/MusicPlayer';
+import SelfEvaluationTracker from '@/components/nightowl/SelfEvaluationTracker';
+import MotivationalWall from '@/components/nightowl/MotivationalWall';
+import SleepGuardian from '@/components/nightowl/SleepGuardian';
+import EmergencySOS from '@/components/nightowl/EmergencySOS';
 
 interface Message {
   id: number;
@@ -27,14 +32,18 @@ const NightOwl = () => {
     },
   ]);
   const [inputMessage, setInputMessage] = useState('');
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
   const { askQuestion } = useGemini();
 
-  // URL for the soft strings ambient music
-  const musicUrl = 'https://pixabay.com/music/ambient-mellow-ambient-piano-pad-guitar-strings-138801/';
+  const promptSuggestions = [
+    "I feel stuck with my project",
+    "What's a good book to read tonight?",
+    "How do I build consistency?",
+    "I'm feeling overwhelmed",
+    "Share a motivational quote"
+  ];
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -48,6 +57,7 @@ const NightOwl = () => {
 
     setMessages((prev) => [...prev, newMessage]);
     setInputMessage('');
+    setIsTyping(true);
 
     // Show typing indicator
     scrollToBottom();
@@ -95,6 +105,7 @@ const NightOwl = () => {
 
       setMessages((prev) => [...prev, errorResponse]);
     } finally {
+      setIsTyping(false);
       scrollToBottom();
     }
   };
@@ -103,44 +114,45 @@ const NightOwl = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const toggleMusic = () => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio(musicUrl);
-      audioRef.current.loop = true; // Loop the track indefinitely
-    }
-
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
-    }
-
-    setIsPlaying((prev) => !prev);
-
-    toast({
-      title: isPlaying ? 'Music Paused' : 'Music Playing',
-      description: isPlaying
-        ? 'Ambient music has been paused.'
-        : 'Relaxing soft strings ambient music is now playing.',
-    });
-  };
-
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
   return (
-    <PageLayout title="Night Owl Mode" showFloatingOrbs={false}>
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col md:flex-row gap-6">
-            <div className="glass-card p-6 md:w-2/3 flex flex-col h-[600px]">
+    <PageLayout title="" showFloatingOrbs={false}>
+      <StarfieldBackground />
+      
+      {/* Hero Section */}
+      <div className="container mx-auto px-4 pt-20 pb-12">
+        <div className="text-center max-w-3xl mx-auto">
+          <div className="flex items-center justify-center mb-4">
+            <MoonStar className="h-8 w-8 mr-3 text-novana-light-blue animate-pulse-glow" />
+            <h1 className="text-4xl font-bold cosmic-text">Night Owl</h1>
+          </div>
+          <p className="text-xl text-white/80 mb-6">
+            Darkness doesn't end the story — it begins a chapter where the stars speak.
+          </p>
+          <MoonPhaseDisplay />
+        </div>
+      </div>
+      
+      {/* Main Content */}
+      <div className="container mx-auto px-4 pb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Chat */}
+            <div className="glass-card p-6 min-h-[500px] flex flex-col">
               <div className="flex items-center mb-4 pb-4 border-b border-white/10">
                 <MoonStar className="h-6 w-6 mr-3 text-novana-purple" />
                 <h2 className="text-xl font-semibold">Night Owl Companion</h2>
               </div>
 
-              <div className="flex-grow overflow-y-auto mb-4 space-y-4 pr-2">
+              <div className="flex-grow overflow-y-auto mb-4 space-y-4 pr-2 custom-scrollbar">
                 {messages.map((message) => (
                   <div
                     key={message.id}
@@ -162,71 +174,74 @@ const NightOwl = () => {
                     </div>
                   </div>
                 ))}
+                
+                {isTyping && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[80%] rounded-lg p-3 bg-white/10 text-white">
+                      <div className="flex space-x-1">
+                        <div className="h-2 w-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="h-2 w-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                        <div className="h-2 w-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: '600ms' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div ref={messagesEndRef} />
               </div>
 
-              <div className="flex gap-2">
-                <Textarea
-                  placeholder="Ask me anything or share how you're feeling..."
-                  className="min-h-[60px] bg-white/5 border-white/20 resize-none"
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                />
-                <Button
-                  onClick={handleSendMessage}
-                  className="cosmic-gradient text-white self-end"
-                >
-                  <Send className="h-5 w-5" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="md:w-1/3 space-y-6">
-              <div className="glass-card p-6">
-                <h3 className="text-xl font-semibold mb-4">Ambient Music</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-center">
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {promptSuggestions.map((suggestion, index) => (
                     <Button
-                      onClick={toggleMusic}
+                      key={index}
                       variant="outline"
-                      className="w-16 h-16 rounded-full glass-button flex items-center justify-center"
+                      size="sm"
+                      className="text-xs bg-white/5"
+                      onClick={() => setInputMessage(suggestion)}
                     >
-                      {isPlaying ? (
-                        <PauseCircle className="h-10 w-10 text-novana-light-blue" />
-                      ) : (
-                        <PlayCircle className="h-10 w-10 text-novana-light-blue" />
-                      )}
+                      {suggestion}
                     </Button>
-                  </div>
-
-                  <div>
-                    <p className="text-center text-white/70">
-                      {isPlaying ? 'Playing Soft Strings Music' : 'Select to play'}
-                    </p>
-                  </div>
+                  ))}
+                </div>
+                
+                <div className="flex gap-2">
+                  <Textarea
+                    placeholder="Ask me anything or share how you're feeling..."
+                    className="min-h-[60px] bg-white/5 border-white/20 resize-none"
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    className="cosmic-gradient text-white self-end"
+                  >
+                    <Send className="h-5 w-5" />
+                  </Button>
                 </div>
               </div>
-
-              <div className="glass-card p-6">
-                <h3 className="font-semibold mb-4">Motivation Quote</h3>
-                <blockquote className="italic text-white/80">
-                  "The night is darkest just before the dawn. And I promise you,
-                  the dawn is coming."
-                </blockquote>
-                <p className="text-right text-sm text-white/50 mt-2">
-                  — Harvey Dent
-                </p>
-              </div>
             </div>
+            
+            {/* Self-Evaluation Tracker */}
+            <SelfEvaluationTracker />
+          </div>
+          
+          {/* Right Column */}
+          <div className="space-y-6">
+            <MusicPlayer />
+            <MotivationalWall />
+            <SleepGuardian />
           </div>
         </div>
       </div>
+      
+      {/* SOS Button */}
+      <EmergencySOS />
     </PageLayout>
   );
 };
