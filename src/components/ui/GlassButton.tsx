@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { Button, ButtonProps } from '@/components/ui/button';
+import { Button as UIButton, ButtonProps } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-interface GlassButtonProps extends ButtonProps {
+interface GlassButtonProps extends Omit<ButtonProps, 'variant'> {
   glowColor?: string;
   glassmorphism?: boolean;
   gradientText?: boolean;
@@ -20,9 +20,15 @@ const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>(
     variant = "solid",
     ...props 
   }, ref) => {
+    // Map our custom variants to shadcn button variants
+    const buttonVariant = variant === 'solid' ? 
+      'default' : 
+      'outline';
+      
     return (
-      <Button
+      <UIButton
         ref={ref}
+        variant={buttonVariant}
         className={cn(
           "relative overflow-hidden transition-all duration-300",
           glassmorphism && "backdrop-blur-md bg-opacity-20",
@@ -41,7 +47,7 @@ const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>(
         <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full hover:animate-shine" />
         
         {children}
-      </Button>
+      </UIButton>
     );
   }
 );

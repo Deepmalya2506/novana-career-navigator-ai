@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/layout/Header';
@@ -8,6 +9,7 @@ import FloatingOrb from '@/components/ui/FloatingOrb';
 import GlassButton from '@/components/ui/GlassButton';
 import GlowBadge from '@/components/ui/GlowBadge';
 import BubbleBackground from '@/components/ui/BubbleBackground';
+import { Button } from '@/components/ui/button';
 import { 
   Award, 
   BookOpen, 
@@ -126,10 +128,10 @@ const Index = () => {
         </div>
         
         <div className="text-center mt-12">
-          <Button className="cosmic-gradient text-white font-medium py-6 px-8 rounded-full hover:opacity-90 transition-opacity">
+          <GlassButton className="py-6 px-8 rounded-full">
             Start Your Journey
             <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          </GlassButton>
         </div>
       </section>
       
@@ -173,9 +175,9 @@ const Index = () => {
                 <span className="text-white/80">Compete with peers on the leaderboard</span>
               </li>
             </ul>
-            <Button className="glass-button px-6 py-2">
+            <GlassButton className="px-6 py-2">
               Try Proctored Mode
-            </Button>
+            </GlassButton>
           </div>
         </div>
       </section>
@@ -196,12 +198,12 @@ const Index = () => {
                 A special companion mode designed to keep you motivated during late-night study sessions. Talk with our AI agent and enjoy ambient music.
               </p>
               <div className="flex items-center gap-4">
-                <Button className="cosmic-gradient text-white">
+                <GlassButton variant="solid">
                   Activate Night Owl
-                </Button>
-                <Button variant="outline" className="border-white/20 text-white hover:border-white/40">
+                </GlassButton>
+                <GlassButton variant="outline">
                   Learn More
-                </Button>
+                </GlassButton>
               </div>
             </div>
             
@@ -232,9 +234,9 @@ const Index = () => {
             <p className="text-white/70 mb-6">
               Navigate through career-boosting events in your area
             </p>
-            <Button className="glass-button">
+            <GlassButton>
               Explore Events
-            </Button>
+            </GlassButton>
           </div>
         </div>
       </section>
@@ -248,9 +250,9 @@ const Index = () => {
           <p className="text-white/80 text-lg mb-8 max-w-2xl mx-auto">
             Join NOVANA today and unlock personalized AI-driven guidance for your career growth and academic success.
           </p>
-          <Button className="cosmic-gradient text-white font-medium py-6 px-10 rounded-full hover:opacity-90 transition-opacity text-lg">
+          <GlassButton className="py-6 px-10 rounded-full text-lg">
             Get Started Now
-          </Button>
+          </GlassButton>
         </div>
       </section>
       
