@@ -1,20 +1,6 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Award, 
-  BookOpen, 
-  Calendar, 
-  Laptop, 
-  MapPin, 
-  MoonStar, 
-  Users, 
-  Linkedin,
-  ArrowRight,
-  Rocket,
-  Target
-} from 'lucide-react';
-
+import { Award, BookOpen, Calendar, Laptop, MapPin, MoonStar, Users, Linkedin, ArrowRight, Rocket, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -22,24 +8,15 @@ import FeatureCard from '@/components/ui/FeatureCard';
 import FloatingOrb from '@/components/ui/FloatingOrb';
 import GlowBadge from '@/components/ui/GlowBadge';
 import BubbleBackground from '@/components/ui/BubbleBackground';
-
 const Index = () => {
-  return (
-    <div className="flex min-h-screen flex-col overflow-hidden">
+  return <div className="flex min-h-screen flex-col overflow-hidden">
       <Header />
       
       {/* Hero Section */}
       <section className="container mx-auto px-4 pt-32 pb-16 relative">
-        <BubbleBackground 
-          count={18} 
-          maxSize={150} 
-          minSize={20}
-        />
+        <BubbleBackground count={18} maxSize={150} minSize={20} />
         
-        <FloatingOrb 
-          size="lg" 
-          className="absolute -top-20 -right-20 opacity-30 z-0" 
-        />
+        <FloatingOrb size="lg" className="absolute -top-20 -right-20 opacity-30 z-0" />
         
         <div className="relative z-10 max-w-3xl mx-auto text-center">
           <div className="flex justify-center mb-6 space-x-4">
@@ -54,9 +31,7 @@ const Index = () => {
           <h2 className="text-2xl md:text-3xl font-bold mb-6 text-white">
             Your AI-Powered Career Pilot
           </h2>
-          <p className="text-xl text-white/80 mb-10">
-            Disappear from Crowd | Evolve in silence | Rise with Radiance
-          </p>
+          <p className="text-xl text-white/80 mb-10 font-semibold"> As a Star die in Supernova | Let another Star evolve with novana</p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button className="cosmic-gradient text-white font-medium py-6 px-8 rounded-full hover:opacity-90 transition-opacity">
@@ -79,53 +54,17 @@ const Index = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <FeatureCard
-            title="Career Roadmap"
-            description="Personalized career planning for your dream company with key milestones tracking."
-            icon={Rocket}
-            to="/career"
-            gradient="from-blue-500 to-indigo-600"
-          />
+          <FeatureCard title="Career Roadmap" description="Personalized career planning for your dream company with key milestones tracking." icon={Rocket} to="/career" gradient="from-blue-500 to-indigo-600" />
           
-          <FeatureCard
-            title="Exam Preparation"
-            description="AI-driven study plans based on your syllabus, strengths, and schedule."
-            icon={BookOpen}
-            to="/exam"
-            gradient="from-purple-500 to-pink-500"
-          />
+          <FeatureCard title="Exam Preparation" description="AI-driven study plans based on your syllabus, strengths, and schedule." icon={BookOpen} to="/exam" gradient="from-purple-500 to-pink-500" />
           
-          <FeatureCard
-            title="Event Aggregator"
-            description="Discover and register for relevant events based on your progress and location."
-            icon={Calendar}
-            to="/events"
-            gradient="from-cyan-500 to-blue-600"
-          />
+          <FeatureCard title="Event Aggregator" description="Discover and register for relevant events based on your progress and location." icon={Calendar} to="/events" gradient="from-cyan-500 to-blue-600" />
           
-          <FeatureCard
-            title="LinkedIn Generator"
-            description="Create compelling LinkedIn posts that showcase your achievements."
-            icon={Linkedin}
-            to="/linkedin"
-            gradient="from-blue-600 to-blue-800"
-          />
+          <FeatureCard title="LinkedIn Generator" description="Create compelling LinkedIn posts that showcase your achievements." icon={Linkedin} to="/linkedin" gradient="from-blue-600 to-blue-800" />
           
-          <FeatureCard
-            title="Night Owl Mode"
-            description="Stay motivated during late-night study sessions with AI companionship."
-            icon={MoonStar}
-            to="/night-owl"
-            gradient="from-indigo-600 to-violet-600"
-          />
+          <FeatureCard title="Night Owl Mode" description="Stay motivated during late-night study sessions with AI companionship." icon={MoonStar} to="/night-owl" gradient="from-indigo-600 to-violet-600" />
           
-          <FeatureCard
-            title="Community Platform"
-            description="Connect with peers for resource sharing, team formation, and doubt solving."
-            icon={Users}
-            to="/community"
-            gradient="from-amber-500 to-pink-500"
-          />
+          <FeatureCard title="Community Platform" description="Connect with peers for resource sharing, team formation, and doubt solving." icon={Users} to="/community" gradient="from-amber-500 to-pink-500" />
         </div>
       </section>
       
@@ -175,11 +114,7 @@ const Index = () => {
       {/* Proctored Mode */}
       <section className="container mx-auto px-4 py-16">
         <div className="glass-card p-8 md:p-12 relative overflow-hidden">
-          <FloatingOrb 
-            size="md" 
-            className="absolute -top-24 -right-24 opacity-20" 
-            color="from-novana-purple to-novana-pink"
-          />
+          <FloatingOrb size="md" className="absolute -top-24 -right-24 opacity-20" color="from-novana-purple to-novana-pink" />
           
           <div className="relative z-10 max-w-3xl">
             <h2 className="text-3xl font-bold mb-6 cosmic-text">Proctored Mode</h2>
@@ -222,11 +157,7 @@ const Index = () => {
       {/* Night Owl Mode */}
       <section className="container mx-auto px-4 py-16">
         <div className="glass-card p-8 md:p-12 relative overflow-hidden bg-gradient-to-br from-black/60 to-novana-dark-blue/40">
-          <FloatingOrb 
-            size="md" 
-            className="absolute -top-20 -left-20 opacity-20" 
-            color="from-indigo-600 to-violet-800"
-          />
+          <FloatingOrb size="md" className="absolute -top-20 -left-20 opacity-20" color="from-indigo-600 to-violet-800" />
           
           <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
             <div className="md:w-1/2 space-y-6">
@@ -294,8 +225,6 @@ const Index = () => {
       </section>
       
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
