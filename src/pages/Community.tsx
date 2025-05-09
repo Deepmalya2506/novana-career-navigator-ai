@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
@@ -608,7 +607,7 @@ const Community = () => {
                       Student Sanctuary
                     </Button>
                     <Button variant="outline" size="sm" className="glass-button whitespace-nowrap">
-                      <Yoga className="mr-2 h-4 w-4" />
+                      <Star className="mr-2 h-4 w-4" />
                       Wellness & Night Owl
                     </Button>
                     <Button variant="outline" size="sm" className="glass-button whitespace-nowrap">
