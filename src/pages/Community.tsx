@@ -15,7 +15,7 @@ import { useGemini } from '@/hooks/useGemini';
 import { 
   Search, MessageSquare, Users, BookOpen, ThumbsUp, 
   MessageCircle, Share2, Bell, Globe, Rocket, 
-  Lightbulb, GraduationCap, Yoga, Star, Badge as BadgeIcon, Plus
+  Lightbulb, GraduationCap, Star, Badge as BadgeIcon, Plus
 } from 'lucide-react';
 
 interface Post {
@@ -793,24 +793,3 @@ const Community = () => {
                             <Avatar className="h-6 w-6 mr-2">
                               <AvatarFallback className="text-xs bg-novana-purple/20">
                                 {member.name.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-sm">{member.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-sm">{member.points}</TableCell>
-                        <TableCell className="text-sm">{member.badges}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </PageLayout>
-  );
-};
-
-export default Community;
