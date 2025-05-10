@@ -7,17 +7,19 @@ import FloatingOrb from '@/components/ui/FloatingOrb';
 interface PageLayoutProps {
   children: React.ReactNode;
   title?: string;
+  description?: string;  // Added description prop
   showFloatingOrbs?: boolean;
 }
 
-const PageLayout = ({ children, title, showFloatingOrbs = true }: PageLayoutProps) => {
+const PageLayout = ({ children, title, description, showFloatingOrbs = true }: PageLayoutProps) => {
   return (
     <div className="flex min-h-screen flex-col overflow-hidden">
       <Header />
       
-      {title && (
-        <section className="container mx-auto px-4 pt-32 pb-8">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 cosmic-text text-center">{title}</h1>
+      {(title || description) && (
+        <section className="container mx-auto px-4 pt-32 pb-8 text-center">
+          {title && <h1 className="text-4xl md:text-5xl font-bold mb-4 cosmic-text">{title}</h1>}
+          {description && <p className="text-white/70 max-w-2xl mx-auto">{description}</p>}
         </section>
       )}
       

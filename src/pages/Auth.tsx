@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { StarfieldBackground } from '@/components/ui/StarfieldBackground';
+import StarfieldBackground from '@/components/ui/StarfieldBackground';
 
 const Auth = () => {
   const { signIn, signUp, isAuthenticated, loading } = useAuth();
