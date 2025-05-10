@@ -1,49 +1,73 @@
+import React from 'react';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import Index from './pages/Index';
+import Auth from './pages/Auth';
+import Career from './pages/CareerRoadmap';
+import ExamPrep from './pages/ExamPrep';
+import Events from './pages/Events';
+import LinkedIn from './pages/LinkedInGenerator';
+import NightOwl from './pages/NightOwl';
+import Community from './pages/Community';
+import Proctored from './pages/ProctoredMode';
+import NotFound from './pages/NotFound';
+import Profile from './pages/Profile';
+import ReadMe from './pages/ReadMe';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import CareerRoadmap from "./pages/CareerRoadmap";
-import ExamPrep from "./pages/ExamPrep";
-import Events from "./pages/Events";
-import LinkedInGenerator from "./pages/LinkedInGenerator";
-import NightOwl from "./pages/NightOwl";
-import Community from "./pages/Community";
-import ProctoredMode from "./pages/ProctoredMode";
-import Auth from "./pages/Auth";
-import Profile from "./pages/Profile";
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Index />
+  },
+  {
+    path: '/auth',
+    element: <Auth />
+  },
+  {
+    path: '/career',
+    element: <Career />
+  },
+  {
+    path: '/exam',
+    element: <ExamPrep />
+  },
+  {
+    path: '/events',
+    element: <Events />
+  },
+  {
+    path: '/linkedin',
+    element: <LinkedIn />
+  },
+  {
+    path: '/night-owl',
+    element: <NightOwl />
+  },
+  {
+    path: '/community',
+    element: <Community />
+  },
+  {
+    path: '/proctored',
+    element: <Proctored />
+  },
+  {
+    path: '/profile',
+    element: <Profile />
+  },
+  {
+    path: '/readme',
+    element: <ReadMe />
+  },
+  {
+    path: '*',
+    element: <NotFound />
+  }
+]);
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/career" element={<CareerRoadmap />} />
-            <Route path="/exam" element={<ExamPrep />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/linkedin" element={<LinkedInGenerator />} />
-            <Route path="/night-owl" element={<NightOwl />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/proctored" element={<ProctoredMode />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <RouterProvider router={router} />
+  );
+}
 
 export default App;

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import StarfieldBackground from '@/components/ui/StarfieldBackground';
+import { Home } from 'lucide-react';
 
 const Auth = () => {
   const { signIn, signUp, isAuthenticated, loading } = useAuth();
@@ -52,6 +53,12 @@ const Auth = () => {
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-4 relative">
       <StarfieldBackground />
+      
+      <Link to="/" className="absolute top-4 left-4 z-20">
+        <Button variant="ghost" size="icon" className="rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm">
+          <Home className="h-5 w-5" />
+        </Button>
+      </Link>
       
       <div className="z-10 w-full max-w-md">
         <div className="text-center mb-6">

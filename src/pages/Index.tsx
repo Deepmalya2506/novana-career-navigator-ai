@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Award, BookOpen, Calendar, Laptop, MapPin, MoonStar, Users, Linkedin, ArrowRight, Rocket, Target } from 'lucide-react';
@@ -8,6 +9,7 @@ import FeatureCard from '@/components/ui/FeatureCard';
 import FloatingOrb from '@/components/ui/FloatingOrb';
 import GlowBadge from '@/components/ui/GlowBadge';
 import BubbleBackground from '@/components/ui/BubbleBackground';
+
 const Index = () => {
   return <div className="flex min-h-screen flex-col overflow-hidden">
       <Header />
@@ -32,11 +34,18 @@ const Index = () => {
           <p className="text-xl text-white/80 mb-10 font-semibold"> As a Star die in Supernova | Let another Star evolve with novana</p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="cosmic-gradient text-white font-medium py-6 px-8 rounded-full hover:opacity-90 transition-opacity">
-              Get Started
+            <Button 
+              className="cosmic-gradient text-white font-medium py-6 px-8 rounded-full transition-all hover:opacity-90 hover:shadow-lg hover:scale-105"
+              asChild
+            >
+              <Link to="/auth">Get Started</Link>
             </Button>
-            <Button variant="outline" className="border-white/20 text-white hover:border-white/40 py-6 px-8 rounded-full">
-              Learn More
+            <Button 
+              variant="outline" 
+              className="border-white/20 text-white hover:border-white/40 py-6 px-8 rounded-full transition-all hover:bg-white/10"
+              asChild
+            >
+              <Link to="/readme">Learn More</Link>
             </Button>
           </div>
         </div>
@@ -216,8 +225,11 @@ const Index = () => {
           <p className="text-white/80 text-lg mb-8 max-w-2xl mx-auto">
             Join NOVANA today and unlock personalized AI-driven guidance for your career growth and academic success.
           </p>
-          <Button className="cosmic-gradient text-white font-medium py-6 px-10 rounded-full hover:opacity-90 transition-opacity text-lg">
-            Get Started Now
+          <Button 
+            className="cosmic-gradient text-white font-medium py-6 px-10 rounded-full transition-all hover:opacity-90 hover:shadow-lg hover:scale-105"
+            asChild
+          >
+            <Link to="/auth">Get Started Now</Link>
           </Button>
         </div>
       </section>
@@ -225,4 +237,5 @@ const Index = () => {
       <Footer />
     </div>;
 };
+
 export default Index;
