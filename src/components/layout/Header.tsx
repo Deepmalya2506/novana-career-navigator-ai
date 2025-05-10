@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ import {
   Menu,
   X,
 } from 'lucide-react';
+import { UserMenu } from './UserMenu';
 
 const navigationItems = [
   {
@@ -125,21 +127,9 @@ const Header = () => {
           </Button>
         </div>
 
-        {/* Login/Signup Buttons */}
-        <div className="hidden lg:flex items-center space-x-4">
-          <Button 
-            variant="outline" 
-            className="border-white/20 text-white hover:border-white/40"
-            size="sm"
-          >
-            Login
-          </Button>
-          <Button 
-            className="cosmic-gradient text-white"
-            size="sm"
-          >
-            Sign Up
-          </Button>
+        {/* User Menu (Login/Profile) */}
+        <div className="hidden lg:block">
+          <UserMenu />
         </div>
       </div>
 
@@ -158,20 +148,8 @@ const Header = () => {
                 <span>{item.name}</span>
               </Link>
             ))}
-            <div className="flex space-x-3 pt-4 border-t border-white/10">
-              <Button 
-                variant="outline" 
-                className="border-white/20 text-white hover:border-white/40 flex-1"
-                size="sm"
-              >
-                Login
-              </Button>
-              <Button 
-                className="cosmic-gradient text-white flex-1"
-                size="sm"
-              >
-                Sign Up
-              </Button>
+            <div className="pt-4 border-t border-white/10">
+              <UserMenu />
             </div>
           </nav>
         </div>
