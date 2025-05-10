@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Index from './pages/Index';
 import Auth from './pages/Auth';
 import Career from './pages/CareerRoadmap';
@@ -13,60 +14,22 @@ import NotFound from './pages/NotFound';
 import Profile from './pages/Profile';
 import ReadMe from './pages/ReadMe';
 
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <Index />
-  },
-  {
-    path: '/auth',
-    element: <Auth />
-  },
-  {
-    path: '/career',
-    element: <Career />
-  },
-  {
-    path: '/exam',
-    element: <ExamPrep />
-  },
-  {
-    path: '/events',
-    element: <Events />
-  },
-  {
-    path: '/linkedin',
-    element: <LinkedIn />
-  },
-  {
-    path: '/night-owl',
-    element: <NightOwl />
-  },
-  {
-    path: '/community',
-    element: <Community />
-  },
-  {
-    path: '/proctored',
-    element: <Proctored />
-  },
-  {
-    path: '/profile',
-    element: <Profile />
-  },
-  {
-    path: '/readme',
-    element: <ReadMe />
-  },
-  {
-    path: '*',
-    element: <NotFound />
-  }
-]);
-
 function App() {
   return (
-    <RouterProvider router={router} />
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/career" element={<Career />} />
+      <Route path="/exam" element={<ExamPrep />} />
+      <Route path="/events" element={<Events />} />
+      <Route path="/linkedin" element={<LinkedIn />} />
+      <Route path="/night-owl" element={<NightOwl />} />
+      <Route path="/community" element={<Community />} />
+      <Route path="/proctored" element={<Proctored />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/readme" element={<ReadMe />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
 
