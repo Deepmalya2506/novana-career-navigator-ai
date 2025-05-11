@@ -24,7 +24,7 @@ import {
   Rocket,
   LightbulbIcon,
   GraduationCap,
-  Yoga,
+  Heart,
   Globe,
   TrendingUp,
   MapPin,
@@ -626,7 +626,7 @@ const Community = () => {
                     
                     <div className="glass-card p-4 hover:border-novana-pink/50 cursor-pointer transition-all">
                       <div className="flex items-center gap-2 mb-1">
-                        <Yoga className="h-5 w-5 text-novana-pink" />
+                        <Heart className="h-5 w-5 text-novana-pink" />
                         <span className="font-semibold">Wellness & Night Owl Reflections</span>
                       </div>
                       <p className="text-sm text-white/70">Self-care tips, focus techniques, and night owl support</p>
