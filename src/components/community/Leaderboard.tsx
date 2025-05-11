@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -71,7 +70,7 @@ export const Leaderboard = () => {
             messages_sent: user.messages_sent,
             groups_joined: user.groups_joined,
             last_active: user.last_active,
-            profiles: user.profiles
+            profiles: user.profiles as ProfileData
           };
         });
         

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -83,7 +82,7 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
             user_id: message.user_id,
             is_edited: message.is_edited,
             parent_id: message.parent_id,
-            profiles: message.profiles
+            profiles: message.profiles as ProfileData
           };
         });
         
@@ -118,13 +117,23 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
             
           if (!error && data) {
             const newMsg: ChatMessage = {
-              ...(payload.new as any),
-              profiles: data
+              id: payload.new.id,
+              content: payload.new.content,
+              created_at: payload.new.created_at,
+              user_id: payload.new.user_id,
+              is_edited: payload.new.is_edited || false,
+              parent_id: payload.new.parent_id,
+              profiles: data as ProfileData
             };
             setMessages(prev => [...prev, newMsg]);
           } else {
             const newMsg: ChatMessage = {
-              ...(payload.new as any),
+              id: payload.new.id,
+              content: payload.new.content,
+              created_at: payload.new.created_at,
+              user_id: payload.new.user_id,
+              is_edited: payload.new.is_edited || false,
+              parent_id: payload.new.parent_id,
               profiles: null
             };
             setMessages(prev => [...prev, newMsg]);
@@ -142,7 +151,11 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
           setMessages(prev => 
             prev.map(msg => 
               msg.id === payload.new.id 
-                ? { ...msg, ...(payload.new as any) } 
+                ? { 
+                    ...msg, 
+                    content: payload.new.content,
+                    is_edited: payload.new.is_edited 
+                  } 
                 : msg
             )
           );

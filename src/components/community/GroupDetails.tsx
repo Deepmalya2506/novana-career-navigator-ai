@@ -109,7 +109,7 @@ export const GroupDetails = ({ groupId }: GroupDetailsProps) => {
             user_id: member.user_id,
             joined_at: member.joined_at,
             is_admin: member.is_admin,
-            profiles: member.profiles
+            profiles: member.profiles as ProfileData
           };
         });
         
