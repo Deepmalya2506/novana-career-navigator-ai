@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
@@ -198,7 +197,7 @@ const SAMPLE_SPOTLIGHT: SpotlightStory[] = [
     id: 3,
     type: "quote",
     title: "Thought for Today",
-    content: ""The stars don't look bigger, but they do look brighter." — Sally Ride, on seeing the Earth from space",
+    content: "\"The stars don't look bigger, but they do look brighter.\" — Sally Ride, on seeing the Earth from space",
     author: "Shared by Night Owl Study Group"
   }
 ];
