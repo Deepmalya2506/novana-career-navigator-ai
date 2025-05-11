@@ -9,6 +9,12 @@ import { Loader2, Send, Edit, Trash2, Reply } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
+interface ProfileData {
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+}
+
 interface ChatMessage {
   id: string;
   content: string;
@@ -16,11 +22,7 @@ interface ChatMessage {
   user_id: string;
   is_edited: boolean;
   parent_id: string | null;
-  profiles?: {
-    first_name: string | null;
-    last_name: string | null;
-    avatar_url: string | null;
-  }
+  profiles?: ProfileData | null;
 }
 
 interface ChatInterfaceProps {
@@ -59,7 +61,19 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
           
         if (error) throw error;
         
-        setMessages(data || []);
+        // Handle the case where profiles might be an error
+        const validMessages = (data || []).map(message => {
+          // If profiles is an error (doesn't have the expected properties)
+          if (message.profiles && typeof message.profiles === 'object' && 'error' in message.profiles) {
+            return {
+              ...message,
+              profiles: null
+            };
+          }
+          return message;
+        });
+        
+        setMessages(validMessages);
       } catch (error) {
         console.error('Error fetching messages:', error);
         toast.error('Failed to load messages');
@@ -89,9 +103,15 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
             .single();
             
           if (!error && data) {
-            const newMsg = {
-              ...payload.new,
+            const newMsg: ChatMessage = {
+              ...payload.new as ChatMessage,
               profiles: data
+            };
+            setMessages(prev => [...prev, newMsg]);
+          } else {
+            const newMsg: ChatMessage = {
+              ...payload.new as ChatMessage,
+              profiles: null
             };
             setMessages(prev => [...prev, newMsg]);
           }
@@ -108,7 +128,7 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
           setMessages(prev => 
             prev.map(msg => 
               msg.id === payload.new.id 
-                ? { ...msg, ...payload.new } 
+                ? { ...msg, ...payload.new as ChatMessage } 
                 : msg
             )
           );
@@ -146,9 +166,11 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
       if (!user) return;
       
       try {
-        const { error } = await supabase.rpc('update_user_activity', {
-          user_id: user.id,
-          group_id: groupId
+        const { error } = await supabase.functions.invoke('update_user_activity', {
+          body: {
+            userId: user.id,
+            groupId: groupId
+          }
         });
         
         if (error) console.error('Error updating user activity:', error);

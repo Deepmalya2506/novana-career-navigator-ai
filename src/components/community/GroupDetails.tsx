@@ -24,16 +24,18 @@ import {
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 
+interface ProfileData {
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+}
+
 interface Member {
   id: string;
   user_id: string;
   joined_at: string;
   is_admin: boolean;
-  profiles?: {
-    first_name: string | null;
-    last_name: string | null;
-    avatar_url: string | null;
-  }
+  profiles?: ProfileData | null;
 }
 
 interface Group {
@@ -88,11 +90,22 @@ export const GroupDetails = ({ groupId }: GroupDetailsProps) => {
           
         if (membersError) throw membersError;
         
-        setMembers(membersData);
+        // Handle potential profile errors
+        const validMembers = (membersData || []).map(member => {
+          if (member.profiles && typeof member.profiles === 'object' && 'error' in member.profiles) {
+            return {
+              ...member,
+              profiles: null
+            };
+          }
+          return member;
+        });
+        
+        setMembers(validMembers);
         
         // Check if current user is admin
         if (user) {
-          const adminMember = membersData.find(m => 
+          const adminMember = validMembers.find(m => 
             m.user_id === user.id && m.is_admin
           );
           setIsAdmin(!!adminMember);

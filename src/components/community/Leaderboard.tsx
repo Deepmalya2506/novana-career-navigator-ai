@@ -7,17 +7,19 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Trophy, Medal } from 'lucide-react';
 
+interface ProfileData {
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+}
+
 interface LeaderboardUser {
   user_id: string;
   activity_points: number;
   messages_sent: number;
   groups_joined: number;
   last_active: string;
-  profiles?: {
-    first_name: string | null;
-    last_name: string | null;
-    avatar_url: string | null;
-  }
+  profiles?: ProfileData | null;
 }
 
 export const Leaderboard = () => {
@@ -42,7 +44,18 @@ export const Leaderboard = () => {
           
         if (error) throw error;
         
-        setUsers(data);
+        // Handle potential profile errors
+        const validUsers = (data || []).map(user => {
+          if (user.profiles && typeof user.profiles === 'object' && 'error' in user.profiles) {
+            return {
+              ...user,
+              profiles: null
+            };
+          }
+          return user;
+        });
+        
+        setUsers(validUsers);
       } catch (error) {
         console.error('Error fetching leaderboard data:', error);
       } finally {
