@@ -91,14 +91,14 @@ export const GroupDetails = ({ groupId }: GroupDetailsProps) => {
         if (membersError) throw membersError;
         
         // Handle potential profile errors
-        const validMembers = (membersData || []).map(member => {
+        const validMembers: Member[] = (membersData || []).map(member => {
           if (member.profiles && typeof member.profiles === 'object' && 'error' in member.profiles) {
             return {
               ...member,
               profiles: null
-            };
+            } as Member;
           }
-          return member;
+          return member as Member;
         });
         
         setMembers(validMembers);

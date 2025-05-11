@@ -13,6 +13,7 @@ interface ProfileData {
   avatar_url: string | null;
 }
 
+// Updated interface to make profiles explicitly nullable
 interface LeaderboardUser {
   user_id: string;
   activity_points: number;
@@ -44,15 +45,16 @@ export const Leaderboard = () => {
           
         if (error) throw error;
         
-        // Handle potential profile errors
-        const validUsers = (data || []).map(user => {
+        // Transform data to ensure it matches our interface
+        const validUsers: LeaderboardUser[] = (data || []).map(user => {
+          // Check if profiles is an error object
           if (user.profiles && typeof user.profiles === 'object' && 'error' in user.profiles) {
             return {
               ...user,
               profiles: null
-            };
+            } as LeaderboardUser;
           }
-          return user;
+          return user as LeaderboardUser;
         });
         
         setUsers(validUsers);

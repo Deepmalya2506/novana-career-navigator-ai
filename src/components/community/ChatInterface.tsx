@@ -169,7 +169,7 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
         const { error } = await supabase.functions.invoke('update_user_activity', {
           body: {
             userId: user.id,
-            groupId: groupId
+            groupId
           }
         });
         
