@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -12,6 +13,12 @@ interface ProfileData {
   avatar_url: string | null;
 }
 
+// Define a type for error responses
+interface ErrorResponse {
+  error: true;
+  [key: string]: any;
+}
+
 interface LeaderboardUser {
   user_id: string;
   activity_points: number;
@@ -19,11 +26,6 @@ interface LeaderboardUser {
   groups_joined: number;
   last_active: string;
   profiles?: ProfileData | null;
-}
-
-// Type to handle potential error responses from Supabase
-interface ErrorProfile {
-  error: true;
 }
 
 export const Leaderboard = () => {
@@ -52,7 +54,7 @@ export const Leaderboard = () => {
         const validUsers: LeaderboardUser[] = (data || []).map(user => {
           // Check if profiles is an error object
           if (user.profiles && typeof user.profiles === 'object' && 'error' in user.profiles) {
-            // Cast to unknown first then to LeaderboardUser to satisfy TypeScript
+            // If it's an error, set profiles to null
             return {
               user_id: user.user_id,
               activity_points: user.activity_points,
@@ -63,14 +65,14 @@ export const Leaderboard = () => {
             };
           }
           
-          // Cast the user directly to LeaderboardUser
+          // If it's valid profile data
           return {
             user_id: user.user_id,
             activity_points: user.activity_points,
             messages_sent: user.messages_sent,
             groups_joined: user.groups_joined,
             last_active: user.last_active,
-            profiles: user.profiles as ProfileData
+            profiles: user.profiles as ProfileData | null
           };
         });
         

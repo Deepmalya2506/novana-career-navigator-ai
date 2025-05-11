@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -12,6 +13,12 @@ interface ProfileData {
   first_name: string | null;
   last_name: string | null;
   avatar_url: string | null;
+}
+
+// Define a type for error responses
+interface ErrorResponse {
+  error: true;
+  [key: string]: any;
 }
 
 interface ChatMessage {
@@ -75,6 +82,7 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
             };
           }
           
+          // If profiles contains valid data
           return {
             id: message.id,
             content: message.content,
@@ -82,7 +90,7 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
             user_id: message.user_id,
             is_edited: message.is_edited,
             parent_id: message.parent_id,
-            profiles: message.profiles as ProfileData
+            profiles: message.profiles as ProfileData | null
           };
         });
         
@@ -193,14 +201,46 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
       if (!user) return;
       
       try {
-        const { error } = await supabase.functions.invoke('update_user_activity', {
-          body: {
-            userId: user.id,
-            groupId
-          }
-        });
+        // Use direct database query instead of edge function
+        // Get message count
+        const { count: messageCount, error: messageError } = await supabase
+          .from('chat_messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+
+        if (messageError) {
+          console.error('Error counting messages:', messageError);
+          return;
+        }
+
+        // Get group count
+        const { count: groupCount, error: groupError } = await supabase
+          .from('group_members')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+
+        if (groupError) {
+          console.error('Error counting groups:', groupError);
+          return;
+        }
+
+        // Calculate points: 5 points per message, 10 points per group
+        const activityPoints = (messageCount || 0) * 5 + (groupCount || 0) * 10;
+
+        // Update user activity
+        const { error } = await supabase
+          .from('user_activity')
+          .upsert({
+            user_id: user.id,
+            messages_sent: messageCount || 0,
+            groups_joined: groupCount || 0,
+            last_active: new Date().toISOString(),
+            activity_points: activityPoints
+          });
         
-        if (error) console.error('Error updating user activity:', error);
+        if (error) {
+          console.error('Error updating user activity:', error);
+        }
       } catch (error) {
         console.error('Error updating user activity:', error);
       }
@@ -245,16 +285,6 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
           });
           
         if (error) throw error;
-        
-        // Update messages sent count
-        await supabase
-          .from('user_activity')
-          .upsert({
-            user_id: user.id,
-            messages_sent: messages.filter(m => m.user_id === user.id).length + 1,
-            last_active: new Date().toISOString(),
-            activity_points: messages.filter(m => m.user_id === user.id).length * 5 + 10
-          });
       }
       
       setNewMessage('');
