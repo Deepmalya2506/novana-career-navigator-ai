@@ -93,12 +93,24 @@ export const GroupDetails = ({ groupId }: GroupDetailsProps) => {
         // Handle potential profile errors
         const validMembers: Member[] = (membersData || []).map(member => {
           if (member.profiles && typeof member.profiles === 'object' && 'error' in member.profiles) {
+            // Create a valid Member object with null profiles
             return {
-              ...member,
+              id: member.id,
+              user_id: member.user_id,
+              joined_at: member.joined_at,
+              is_admin: member.is_admin,
               profiles: null
-            } as Member;
+            };
           }
-          return member as Member;
+          
+          // Create a valid Member object preserving profiles data
+          return {
+            id: member.id,
+            user_id: member.user_id,
+            joined_at: member.joined_at,
+            is_admin: member.is_admin,
+            profiles: member.profiles
+          };
         });
         
         setMembers(validMembers);

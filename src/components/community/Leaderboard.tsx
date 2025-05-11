@@ -13,7 +13,6 @@ interface ProfileData {
   avatar_url: string | null;
 }
 
-// Updated interface to make profiles explicitly nullable
 interface LeaderboardUser {
   user_id: string;
   activity_points: number;
@@ -21,6 +20,11 @@ interface LeaderboardUser {
   groups_joined: number;
   last_active: string;
   profiles?: ProfileData | null;
+}
+
+// Type to handle potential error responses from Supabase
+interface ErrorProfile {
+  error: true;
 }
 
 export const Leaderboard = () => {
@@ -49,12 +53,26 @@ export const Leaderboard = () => {
         const validUsers: LeaderboardUser[] = (data || []).map(user => {
           // Check if profiles is an error object
           if (user.profiles && typeof user.profiles === 'object' && 'error' in user.profiles) {
+            // Cast to unknown first then to LeaderboardUser to satisfy TypeScript
             return {
-              ...user,
+              user_id: user.user_id,
+              activity_points: user.activity_points,
+              messages_sent: user.messages_sent,
+              groups_joined: user.groups_joined,
+              last_active: user.last_active,
               profiles: null
-            } as LeaderboardUser;
+            };
           }
-          return user as LeaderboardUser;
+          
+          // Cast the user directly to LeaderboardUser
+          return {
+            user_id: user.user_id,
+            activity_points: user.activity_points,
+            messages_sent: user.messages_sent,
+            groups_joined: user.groups_joined,
+            last_active: user.last_active,
+            profiles: user.profiles
+          };
         });
         
         setUsers(validUsers);

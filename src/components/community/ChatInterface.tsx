@@ -62,15 +62,29 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
         if (error) throw error;
         
         // Handle the case where profiles might be an error
-        const validMessages = (data || []).map(message => {
+        const validMessages: ChatMessage[] = (data || []).map(message => {
           // If profiles is an error (doesn't have the expected properties)
           if (message.profiles && typeof message.profiles === 'object' && 'error' in message.profiles) {
             return {
-              ...message,
+              id: message.id,
+              content: message.content,
+              created_at: message.created_at,
+              user_id: message.user_id,
+              is_edited: message.is_edited,
+              parent_id: message.parent_id,
               profiles: null
             };
           }
-          return message;
+          
+          return {
+            id: message.id,
+            content: message.content,
+            created_at: message.created_at,
+            user_id: message.user_id,
+            is_edited: message.is_edited,
+            parent_id: message.parent_id,
+            profiles: message.profiles
+          };
         });
         
         setMessages(validMessages);
@@ -104,13 +118,13 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
             
           if (!error && data) {
             const newMsg: ChatMessage = {
-              ...payload.new as ChatMessage,
+              ...(payload.new as any),
               profiles: data
             };
             setMessages(prev => [...prev, newMsg]);
           } else {
             const newMsg: ChatMessage = {
-              ...payload.new as ChatMessage,
+              ...(payload.new as any),
               profiles: null
             };
             setMessages(prev => [...prev, newMsg]);
@@ -128,7 +142,7 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
           setMessages(prev => 
             prev.map(msg => 
               msg.id === payload.new.id 
-                ? { ...msg, ...payload.new as ChatMessage } 
+                ? { ...msg, ...(payload.new as any) } 
                 : msg
             )
           );
