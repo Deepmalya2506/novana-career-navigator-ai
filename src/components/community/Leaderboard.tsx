@@ -13,9 +13,10 @@ interface ProfileData {
   avatar_url: string | null;
 }
 
-// Define a type for error responses
+// Interface for error responses from Supabase
 interface ErrorResponse {
   error: true;
+  message?: string;
   [key: string]: any;
 }
 
@@ -52,9 +53,8 @@ export const Leaderboard = () => {
         
         // Transform data to ensure it matches our interface
         const validUsers: LeaderboardUser[] = (data || []).map(user => {
-          // Check if profiles is an error object
-          if (user.profiles && typeof user.profiles === 'object' && 'error' in user.profiles) {
-            // If it's an error, set profiles to null
+          // Check if profiles is an error response
+          if (!user.profiles || (user.profiles && typeof user.profiles === 'object' && 'error' in user.profiles)) {
             return {
               user_id: user.user_id,
               activity_points: user.activity_points,
@@ -72,7 +72,7 @@ export const Leaderboard = () => {
             messages_sent: user.messages_sent,
             groups_joined: user.groups_joined,
             last_active: user.last_active,
-            profiles: user.profiles as ProfileData | null
+            profiles: user.profiles as ProfileData
           };
         });
         

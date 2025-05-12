@@ -30,9 +30,10 @@ interface ProfileData {
   avatar_url: string | null;
 }
 
-// Define a type for error responses
+// Interface for error responses from Supabase
 interface ErrorResponse {
   error: true;
+  message?: string;
   [key: string]: any;
 }
 
@@ -98,7 +99,7 @@ export const GroupDetails = ({ groupId }: GroupDetailsProps) => {
         
         // Handle potential profile errors
         const validMembers: Member[] = (membersData || []).map(member => {
-          if (member.profiles && typeof member.profiles === 'object' && 'error' in member.profiles) {
+          if (!member.profiles || (member.profiles && typeof member.profiles === 'object' && 'error' in member.profiles)) {
             // If profiles contains an error, set it to null
             return {
               id: member.id,
@@ -115,7 +116,7 @@ export const GroupDetails = ({ groupId }: GroupDetailsProps) => {
             user_id: member.user_id,
             joined_at: member.joined_at,
             is_admin: member.is_admin,
-            profiles: member.profiles as ProfileData | null
+            profiles: member.profiles as ProfileData
           };
         });
         

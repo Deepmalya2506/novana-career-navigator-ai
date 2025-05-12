@@ -15,9 +15,10 @@ interface ProfileData {
   avatar_url: string | null;
 }
 
-// Define a type for error responses
+// Interface for error responses from Supabase
 interface ErrorResponse {
   error: true;
+  message?: string;
   [key: string]: any;
 }
 
@@ -69,8 +70,8 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
         
         // Handle the case where profiles might be an error
         const validMessages: ChatMessage[] = (data || []).map(message => {
-          // If profiles is an error (doesn't have the expected properties)
-          if (message.profiles && typeof message.profiles === 'object' && 'error' in message.profiles) {
+          // If profiles is null or contains an error
+          if (!message.profiles || (message.profiles && typeof message.profiles === 'object' && 'error' in message.profiles)) {
             return {
               id: message.id,
               content: message.content,
@@ -90,7 +91,7 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
             user_id: message.user_id,
             is_edited: message.is_edited,
             parent_id: message.parent_id,
-            profiles: message.profiles as ProfileData | null
+            profiles: message.profiles as ProfileData
           };
         });
         
@@ -201,7 +202,7 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
       if (!user) return;
       
       try {
-        // Use direct database query instead of edge function
+        // Use direct database query
         // Get message count
         const { count: messageCount, error: messageError } = await supabase
           .from('chat_messages')
