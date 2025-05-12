@@ -270,8 +270,8 @@ export const GroupList = ({
 
   return (
     <>
-      {/* Mobile Trigger */}
-      <div className="lg:hidden mb-4 flex items-center">
+      {/* Mobile Trigger - now hidden since we're using the card view on mobile */}
+      <div className="hidden">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
             <Button variant="outline" size="sm" className="mr-2">
@@ -427,7 +427,7 @@ export const GroupList = ({
       </div>
       
       {/* Desktop View */}
-      <div className={`hidden lg:block ${className || ''}`}>
+      <div className={className || ''}>
         <div className="space-y-4">
           <div className="flex items-center">
             <Users className="mr-2 h-5 w-5 text-primary" />

@@ -3,19 +3,32 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
 import { GroupList } from '@/components/community/GroupList';
+import { GroupCards } from '@/components/community/GroupCards';
+import { Announcements } from '@/components/community/Announcements';
 import { ChatInterface } from '@/components/community/ChatInterface';
 import { GroupDetails } from '@/components/community/GroupDetails';
 import { Leaderboard } from '@/components/community/Leaderboard';
 import { Separator } from '@/components/ui/separator';
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
+import { 
+  Card, 
+  CardContent
+} from "@/components/ui/card";
 import { useAuth } from '@/context/AuthContext';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Bell, MessageCircle } from 'lucide-react';
 
 const Community = () => {
   const navigate = useNavigate();
   const { isAuthenticated, loading: authLoading } = useRequireAuth();
   const { user } = useAuth();
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("groups");
   
   if (authLoading) {
     return (
@@ -63,12 +76,13 @@ const Community = () => {
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Group List - Mobile view is handled within the component */}
+          {/* Sidebar with Leaderboard */}
           <div className="lg:col-span-3">
+            {/* Mobile view is handled within the component */}
             <GroupList 
               selectedGroupId={selectedGroupId} 
               onSelectGroup={setSelectedGroupId}
-              className="glass-card p-4"
+              className="glass-card p-4 hidden lg:block"
             />
             
             <div className="mt-6">
@@ -76,24 +90,52 @@ const Community = () => {
             </div>
           </div>
           
-          {/* Chat Interface */}
+          {/* Main Content Area */}
           <div className="lg:col-span-9">
-            {selectedGroupId ? (
-              <div className="glass-card">
-                <div className="border-b border-border p-4 flex items-center justify-between">
-                  <h2 className="font-semibold">Chat</h2>
-                  <GroupDetails groupId={selectedGroupId} />
+            <Tabs defaultValue="groups" className="w-full" onValueChange={setActiveTab} value={activeTab}>
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="groups" className="flex items-center">
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                  Groups & Chats
+                </TabsTrigger>
+                <TabsTrigger value="announcements" className="flex items-center">
+                  <Bell className="mr-2 h-4 w-4" />
+                  Announcements
+                </TabsTrigger>
+              </TabsList>
+              
+              {/* Groups Tab */}
+              <TabsContent value="groups" className="space-y-6">
+                <div className="block lg:hidden">
+                  <GroupCards
+                    selectedGroupId={selectedGroupId}
+                    onSelectGroup={setSelectedGroupId}
+                  />
                 </div>
-                <ChatInterface groupId={selectedGroupId} />
-              </div>
-            ) : (
-              <div className="glass-card p-12 flex flex-col items-center justify-center text-center h-[60vh]">
-                <h3 className="text-xl font-semibold mb-2">Select a Group to Start Chatting</h3>
-                <p className="text-muted-foreground">
-                  Join an existing group or create your own to begin conversations with the community.
-                </p>
-              </div>
-            )}
+                
+                {selectedGroupId ? (
+                  <Card className="glass-card">
+                    <div className="border-b border-border p-4 flex items-center justify-between">
+                      <h2 className="font-semibold">Chat</h2>
+                      <GroupDetails groupId={selectedGroupId} />
+                    </div>
+                    <ChatInterface groupId={selectedGroupId} />
+                  </Card>
+                ) : (
+                  <Card className="glass-card p-12 flex flex-col items-center justify-center text-center h-[60vh]">
+                    <h3 className="text-xl font-semibold mb-2">Select a Group to Start Chatting</h3>
+                    <p className="text-muted-foreground">
+                      Join an existing group or create your own to begin conversations with the community.
+                    </p>
+                  </Card>
+                )}
+              </TabsContent>
+              
+              {/* Announcements Tab */}
+              <TabsContent value="announcements">
+                <Announcements />
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </section>
