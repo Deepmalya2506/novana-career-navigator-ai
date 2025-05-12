@@ -9,19 +9,6 @@ import { Loader2, Send, Edit, Trash2, Reply } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
-interface ProfileData {
-  first_name: string | null;
-  last_name: string | null;
-  avatar_url: string | null;
-}
-
-// Interface for error responses from Supabase
-interface ErrorResponse {
-  error: true;
-  message?: string;
-  [key: string]: any;
-}
-
 interface ChatMessage {
   id: string;
   content: string;
@@ -29,7 +16,11 @@ interface ChatMessage {
   user_id: string;
   is_edited: boolean;
   parent_id: string | null;
-  profiles: ProfileData | null;
+  profiles?: {
+    first_name: string | null;
+    last_name: string | null;
+    avatar_url: string | null;
+  }
 }
 
 interface ChatInterfaceProps {
@@ -68,34 +59,7 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
           
         if (error) throw error;
         
-        // Handle the case where profiles might be an error
-        const validMessages: ChatMessage[] = (data || []).map(message => {
-          // If profiles is null or contains an error
-          if (!message.profiles || (typeof message.profiles === 'object' && 'error' in message.profiles)) {
-            return {
-              id: message.id,
-              content: message.content,
-              created_at: message.created_at,
-              user_id: message.user_id,
-              is_edited: message.is_edited,
-              parent_id: message.parent_id,
-              profiles: null
-            };
-          }
-          
-          // If profiles contains valid data
-          return {
-            id: message.id,
-            content: message.content,
-            created_at: message.created_at,
-            user_id: message.user_id,
-            is_edited: message.is_edited,
-            parent_id: message.parent_id,
-            profiles: message.profiles as unknown as ProfileData
-          };
-        });
-        
-        setMessages(validMessages);
+        setMessages(data || []);
       } catch (error) {
         console.error('Error fetching messages:', error);
         toast.error('Failed to load messages');
@@ -125,25 +89,9 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
             .single();
             
           if (!error && data) {
-            const newMsg: ChatMessage = {
-              id: payload.new.id,
-              content: payload.new.content,
-              created_at: payload.new.created_at,
-              user_id: payload.new.user_id,
-              is_edited: payload.new.is_edited || false,
-              parent_id: payload.new.parent_id,
-              profiles: data as ProfileData
-            };
-            setMessages(prev => [...prev, newMsg]);
-          } else {
-            const newMsg: ChatMessage = {
-              id: payload.new.id,
-              content: payload.new.content,
-              created_at: payload.new.created_at,
-              user_id: payload.new.user_id,
-              is_edited: payload.new.is_edited || false,
-              parent_id: payload.new.parent_id,
-              profiles: null
+            const newMsg = {
+              ...payload.new,
+              profiles: data
             };
             setMessages(prev => [...prev, newMsg]);
           }
@@ -160,11 +108,7 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
           setMessages(prev => 
             prev.map(msg => 
               msg.id === payload.new.id 
-                ? { 
-                    ...msg, 
-                    content: payload.new.content,
-                    is_edited: payload.new.is_edited 
-                  } 
+                ? { ...msg, ...payload.new } 
                 : msg
             )
           );
@@ -202,46 +146,12 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
       if (!user) return;
       
       try {
-        // Use direct database query
-        // Get message count
-        const { count: messageCount, error: messageError } = await supabase
-          .from('chat_messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
-
-        if (messageError) {
-          console.error('Error counting messages:', messageError);
-          return;
-        }
-
-        // Get group count
-        const { count: groupCount, error: groupError } = await supabase
-          .from('group_members')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
-
-        if (groupError) {
-          console.error('Error counting groups:', groupError);
-          return;
-        }
-
-        // Calculate points: 5 points per message, 10 points per group
-        const activityPoints = (messageCount || 0) * 5 + (groupCount || 0) * 10;
-
-        // Update user activity
-        const { error } = await supabase
-          .from('user_activity')
-          .upsert({
-            user_id: user.id,
-            messages_sent: messageCount || 0,
-            groups_joined: groupCount || 0,
-            last_active: new Date().toISOString(),
-            activity_points: activityPoints
-          });
+        const { error } = await supabase.rpc('update_user_activity', {
+          user_id: user.id,
+          group_id: groupId
+        });
         
-        if (error) {
-          console.error('Error updating user activity:', error);
-        }
+        if (error) console.error('Error updating user activity:', error);
       } catch (error) {
         console.error('Error updating user activity:', error);
       }
@@ -286,6 +196,16 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
           });
           
         if (error) throw error;
+        
+        // Update messages sent count
+        await supabase
+          .from('user_activity')
+          .upsert({
+            user_id: user.id,
+            messages_sent: messages.filter(m => m.user_id === user.id).length + 1,
+            last_active: new Date().toISOString(),
+            activity_points: messages.filter(m => m.user_id === user.id).length * 5 + 10
+          });
       }
       
       setNewMessage('');
@@ -345,15 +265,6 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
     return messages.find(msg => msg.id === parentId);
   };
   
-  const getDisplayName = (message: ChatMessage | null) => {
-    if (!message) return '';
-    if (!message.profiles) return 'Unknown User';
-    
-    const firstName = message.profiles.first_name || '';
-    const lastName = message.profiles.last_name || '';
-    return `${firstName} ${lastName}`.trim() || 'Unknown User';
-  };
-  
   return (
     <div className="flex flex-col h-[80vh] glass-card">
       {/* Messages area */}
@@ -389,7 +300,8 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
                       {replyMessage && (
                         <div className="px-3 py-2 rounded-t-lg bg-muted/30 text-xs border-l-2 border-primary/50 ml-2 mb-1">
                           <p className="font-semibold">
-                            {replyMessage.user_id === user?.id ? 'You' : getDisplayName(replyMessage)}
+                            {replyMessage.user_id === user?.id ? 'You' : 
+                              `${replyMessage.profiles?.first_name || ''} ${replyMessage.profiles?.last_name || ''}`}
                           </p>
                           <p className="truncate">{replyMessage.content}</p>
                         </div>
@@ -404,7 +316,7 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
                       >
                         {!isCurrentUser && (
                           <p className="font-semibold text-xs mb-1">
-                            {getDisplayName(message)}
+                            {message.profiles?.first_name || ''} {message.profiles?.last_name || ''}
                           </p>
                         )}
                         <p>{message.content}</p>
@@ -467,7 +379,7 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
                 <strong>
                   {replyTo?.user_id === user?.id 
                     ? 'yourself' 
-                    : getDisplayName(replyTo)}
+                    : `${replyTo?.profiles?.first_name || ''} ${replyTo?.profiles?.last_name || ''}`}
                 </strong>
               </span>
             )}

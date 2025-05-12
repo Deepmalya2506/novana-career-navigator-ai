@@ -70,3 +70,5 @@ enabled = true
 [functions]
 serve_port = 54301
 function_port = 54302
+[functions.update_user_activity]
+verify_jwt = true

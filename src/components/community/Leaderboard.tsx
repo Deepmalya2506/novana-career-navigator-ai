@@ -7,26 +7,17 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Trophy, Medal } from 'lucide-react';
 
-interface ProfileData {
-  first_name: string | null;
-  last_name: string | null;
-  avatar_url: string | null;
-}
-
-// Interface for error responses from Supabase
-interface ErrorResponse {
-  error: true;
-  message?: string;
-  [key: string]: any;
-}
-
 interface LeaderboardUser {
   user_id: string;
   activity_points: number;
   messages_sent: number;
   groups_joined: number;
   last_active: string;
-  profiles: ProfileData | null;
+  profiles?: {
+    first_name: string | null;
+    last_name: string | null;
+    avatar_url: string | null;
+  }
 }
 
 export const Leaderboard = () => {
@@ -51,32 +42,7 @@ export const Leaderboard = () => {
           
         if (error) throw error;
         
-        // Transform data to ensure it matches our interface
-        const validUsers: LeaderboardUser[] = (data || []).map(user => {
-          // Check if profiles is an error response or null
-          if (!user.profiles || (typeof user.profiles === 'object' && 'error' in user.profiles)) {
-            return {
-              user_id: user.user_id,
-              activity_points: user.activity_points,
-              messages_sent: user.messages_sent,
-              groups_joined: user.groups_joined,
-              last_active: user.last_active,
-              profiles: null
-            };
-          }
-          
-          // If it's valid profile data
-          return {
-            user_id: user.user_id,
-            activity_points: user.activity_points,
-            messages_sent: user.messages_sent,
-            groups_joined: user.groups_joined,
-            last_active: user.last_active,
-            profiles: user.profiles as unknown as ProfileData
-          };
-        });
-        
-        setUsers(validUsers);
+        setUsers(data);
       } catch (error) {
         console.error('Error fetching leaderboard data:', error);
       } finally {

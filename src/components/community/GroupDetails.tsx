@@ -24,25 +24,16 @@ import {
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 
-interface ProfileData {
-  first_name: string | null;
-  last_name: string | null;
-  avatar_url: string | null;
-}
-
-// Interface for error responses from Supabase
-interface ErrorResponse {
-  error: true;
-  message?: string;
-  [key: string]: any;
-}
-
 interface Member {
   id: string;
   user_id: string;
   joined_at: string;
   is_admin: boolean;
-  profiles: ProfileData | null;
+  profiles?: {
+    first_name: string | null;
+    last_name: string | null;
+    avatar_url: string | null;
+  }
 }
 
 interface Group {
@@ -97,34 +88,11 @@ export const GroupDetails = ({ groupId }: GroupDetailsProps) => {
           
         if (membersError) throw membersError;
         
-        // Handle potential profile errors
-        const validMembers: Member[] = (membersData || []).map(member => {
-          if (!member.profiles || (typeof member.profiles === 'object' && 'error' in member.profiles)) {
-            // If profiles contains an error, set it to null
-            return {
-              id: member.id,
-              user_id: member.user_id,
-              joined_at: member.joined_at,
-              is_admin: member.is_admin,
-              profiles: null
-            };
-          }
-          
-          // If profiles contains valid data
-          return {
-            id: member.id,
-            user_id: member.user_id,
-            joined_at: member.joined_at,
-            is_admin: member.is_admin,
-            profiles: member.profiles as unknown as ProfileData
-          };
-        });
-        
-        setMembers(validMembers);
+        setMembers(membersData);
         
         // Check if current user is admin
         if (user) {
-          const adminMember = validMembers.find(m => 
+          const adminMember = membersData.find(m => 
             m.user_id === user.id && m.is_admin
           );
           setIsAdmin(!!adminMember);

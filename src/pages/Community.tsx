@@ -10,58 +10,12 @@ import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/context/AuthContext';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 
 const Community = () => {
   const navigate = useNavigate();
   const { isAuthenticated, loading: authLoading } = useRequireAuth();
   const { user } = useAuth();
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-  
-  // Update user activity when they visit the page
-  useEffect(() => {
-    const updateUserActivity = async () => {
-      if (!user || !selectedGroupId) return;
-      
-      try {
-        // Get message count
-        const { count: messageCount, error: messageError } = await supabase
-          .from('chat_messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
-          
-        if (messageError) throw messageError;
-        
-        // Get group count
-        const { count: groupCount, error: groupError } = await supabase
-          .from('group_members')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
-          
-        if (groupError) throw groupError;
-        
-        // Calculate points: 5 points per message, 10 points per group
-        const activityPoints = (messageCount || 0) * 5 + (groupCount || 0) * 10;
-        
-        // Upsert user activity
-        const { error } = await supabase
-          .from('user_activity')
-          .upsert({
-            user_id: user.id,
-            messages_sent: messageCount || 0,
-            groups_joined: groupCount || 0,
-            last_active: new Date().toISOString(),
-            activity_points: activityPoints
-          });
-          
-        if (error) throw error;
-      } catch (error) {
-        console.error('Error updating user activity:', error);
-      }
-    };
-    
-    updateUserActivity();
-  }, [user, selectedGroupId]);
   
   if (authLoading) {
     return (
