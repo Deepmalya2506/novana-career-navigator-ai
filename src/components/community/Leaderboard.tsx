@@ -26,7 +26,7 @@ interface LeaderboardUser {
   messages_sent: number;
   groups_joined: number;
   last_active: string;
-  profiles?: ProfileData | null;
+  profiles: ProfileData | null;
 }
 
 export const Leaderboard = () => {
@@ -53,8 +53,8 @@ export const Leaderboard = () => {
         
         // Transform data to ensure it matches our interface
         const validUsers: LeaderboardUser[] = (data || []).map(user => {
-          // Check if profiles is an error response
-          if (!user.profiles || (user.profiles && typeof user.profiles === 'object' && 'error' in user.profiles)) {
+          // Check if profiles is an error response or null
+          if (!user.profiles || (typeof user.profiles === 'object' && 'error' in user.profiles)) {
             return {
               user_id: user.user_id,
               activity_points: user.activity_points,
@@ -72,7 +72,7 @@ export const Leaderboard = () => {
             messages_sent: user.messages_sent,
             groups_joined: user.groups_joined,
             last_active: user.last_active,
-            profiles: user.profiles as ProfileData
+            profiles: user.profiles as unknown as ProfileData
           };
         });
         

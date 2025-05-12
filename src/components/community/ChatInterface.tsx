@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -29,7 +28,7 @@ interface ChatMessage {
   user_id: string;
   is_edited: boolean;
   parent_id: string | null;
-  profiles?: ProfileData | null;
+  profiles: ProfileData | null;
 }
 
 interface ChatInterfaceProps {
@@ -71,7 +70,7 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
         // Handle the case where profiles might be an error
         const validMessages: ChatMessage[] = (data || []).map(message => {
           // If profiles is null or contains an error
-          if (!message.profiles || (message.profiles && typeof message.profiles === 'object' && 'error' in message.profiles)) {
+          if (!message.profiles || (typeof message.profiles === 'object' && 'error' in message.profiles)) {
             return {
               id: message.id,
               content: message.content,
@@ -91,7 +90,7 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
             user_id: message.user_id,
             is_edited: message.is_edited,
             parent_id: message.parent_id,
-            profiles: message.profiles as ProfileData
+            profiles: message.profiles as unknown as ProfileData
           };
         });
         
