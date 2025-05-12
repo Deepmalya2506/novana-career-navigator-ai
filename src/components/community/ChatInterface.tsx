@@ -345,6 +345,15 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
     return messages.find(msg => msg.id === parentId);
   };
   
+  const getDisplayName = (message: ChatMessage | null) => {
+    if (!message) return '';
+    if (!message.profiles) return 'Unknown User';
+    
+    const firstName = message.profiles.first_name || '';
+    const lastName = message.profiles.last_name || '';
+    return `${firstName} ${lastName}`.trim() || 'Unknown User';
+  };
+  
   return (
     <div className="flex flex-col h-[80vh] glass-card">
       {/* Messages area */}
@@ -380,8 +389,7 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
                       {replyMessage && (
                         <div className="px-3 py-2 rounded-t-lg bg-muted/30 text-xs border-l-2 border-primary/50 ml-2 mb-1">
                           <p className="font-semibold">
-                            {replyMessage.user_id === user?.id ? 'You' : 
-                              `${replyMessage.profiles?.first_name || ''} ${replyMessage.profiles?.last_name || ''}`}
+                            {replyMessage.user_id === user?.id ? 'You' : getDisplayName(replyMessage)}
                           </p>
                           <p className="truncate">{replyMessage.content}</p>
                         </div>
@@ -396,7 +404,7 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
                       >
                         {!isCurrentUser && (
                           <p className="font-semibold text-xs mb-1">
-                            {message.profiles?.first_name || ''} {message.profiles?.last_name || ''}
+                            {getDisplayName(message)}
                           </p>
                         )}
                         <p>{message.content}</p>
@@ -459,7 +467,7 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
                 <strong>
                   {replyTo?.user_id === user?.id 
                     ? 'yourself' 
-                    : `${replyTo?.profiles?.first_name || ''} ${replyTo?.profiles?.last_name || ''}`}
+                    : getDisplayName(replyTo)}
                 </strong>
               </span>
             )}
