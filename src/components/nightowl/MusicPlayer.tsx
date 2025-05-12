@@ -77,6 +77,16 @@ const MusicPlayer = () => {
         });
       });
       
+      // Add event listener for when audio finishes playing
+      audioRef.current.addEventListener('ended', () => {
+        if (audioRef.current?.loop) {
+          audioRef.current.currentTime = 0;
+          audioRef.current.play().catch(err => {
+            console.error("Playback failed on loop:", err);
+          });
+        }
+      });
+      
       audioRef.current.load();
     }
     
@@ -119,11 +129,14 @@ const MusicPlayer = () => {
       audioRef.current.src = track.url;
       audioRef.current.load();
       
-      audioRef.current.addEventListener('canplaythrough', function onCanPlay() {
+      const onCanPlay = () => {
         setLoading(false);
         setDuration(audioRef.current?.duration || 0);
         if (wasPlaying) {
           audioRef.current?.play()
+            .then(() => {
+              setIsPlaying(true);
+            })
             .catch(err => {
               console.error("Playback failed:", err);
               toast({
@@ -136,7 +149,9 @@ const MusicPlayer = () => {
         }
         // Remove the event listener to avoid duplicates
         audioRef.current?.removeEventListener('canplaythrough', onCanPlay);
-      }, { once: true });
+      };
+      
+      audioRef.current.addEventListener('canplaythrough', onCanPlay);
       
       setCurrentTrack(track);
       globalCurrentTrackId = track.id;
@@ -151,6 +166,7 @@ const MusicPlayer = () => {
     }
   }, [volume]);
   
+  // Enhanced togglePlay function that will select first track if none selected
   const togglePlay = useCallback(() => {
     if (!audioRef.current) return;
     
@@ -158,10 +174,19 @@ const MusicPlayer = () => {
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
+      // If there's no current track selected, default to the first track
+      if (!currentTrack && tracks.length > 0) {
+        changeTrack(tracks[0]);
+      }
+      
       // Handle autoplay restrictions by catching the promise rejection
       audioRef.current.play()
         .then(() => {
           setIsPlaying(true);
+          toast({
+            title: "Now Playing",
+            description: `${currentTrack.name}`,
+          });
         })
         .catch(err => {
           console.error("Playback failed:", err);
@@ -173,18 +198,33 @@ const MusicPlayer = () => {
           setIsPlaying(false);
         });
     }
-  }, [isPlaying, toast]);
+  }, [isPlaying, currentTrack, changeTrack, toast]);
   
+  // Handle for Next Track button
   const handleNextTrack = useCallback(() => {
     const filteredTracks = filterType === 'all' 
       ? tracks 
       : tracks.filter(track => track.type === filterType);
     
+    // If there are no filtered tracks, return
+    if (filteredTracks.length === 0) {
+      toast({
+        title: "No tracks available",
+        description: "Try selecting a different filter.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const currentIndex = filteredTracks.findIndex(track => track.id === currentTrack.id);
     const nextIndex = (currentIndex + 1) % filteredTracks.length;
     changeTrack(filteredTracks[nextIndex]);
-  }, [currentTrack, filterType, changeTrack]);
+    
+    // Auto-play the next track
+    setIsPlaying(true);
+  }, [currentTrack, filterType, changeTrack, toast]);
   
+  // Get filtered tracks based on the current filter
   const filteredTracks = filterType === 'all' 
     ? tracks 
     : tracks.filter(track => track.type === filterType);
@@ -223,7 +263,7 @@ const MusicPlayer = () => {
             variant="ghost"
             size="icon"
             className="ml-2"
-            disabled={loading}
+            disabled={loading || filteredTracks.length <= 1}
           >
             <SkipForward className="h-5 w-5" />
           </Button>
@@ -268,7 +308,13 @@ const MusicPlayer = () => {
               variant="ghost"
               size="sm"
               className={`w-full justify-start ${currentTrack.id === track.id ? 'bg-white/10' : ''}`}
-              onClick={() => changeTrack(track)}
+              onClick={() => {
+                changeTrack(track);
+                // Auto-play when a track is selected
+                if (audioRef.current && !isPlaying) {
+                  togglePlay();
+                }
+              }}
               disabled={loading && currentTrack.id === track.id}
             >
               {currentTrack.id === track.id && loading ? (
