@@ -16,17 +16,19 @@ import { Bell, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 
+interface AnnouncementProfile {
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+}
+
 interface Announcement {
   id: string;
   title: string;
   content: string;
   created_at: string;
   created_by: string;
-  profiles?: {
-    first_name: string | null;
-    last_name: string | null;
-    avatar_url: string | null;
-  } | null;
+  profiles?: AnnouncementProfile | null;
 }
 
 export const Announcements = () => {
@@ -55,7 +57,7 @@ export const Announcements = () => {
         
         // Filter out any items with error in profiles
         const validData = data?.filter(item => 
-          !item.profiles || typeof item.profiles !== 'string'
+          item.profiles && typeof item.profiles !== 'string' && !('error' in item.profiles)
         ) as Announcement[];
         
         setAnnouncements(validData || []);

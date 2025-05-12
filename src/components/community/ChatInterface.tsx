@@ -8,6 +8,12 @@ import { Loader2, Send, Edit, Trash2, Reply } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
+interface MessageProfile {
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+}
+
 interface ChatMessage {
   id: string;
   content: string;
@@ -15,11 +21,7 @@ interface ChatMessage {
   user_id: string;
   is_edited: boolean;
   parent_id: string | null;
-  profiles?: {
-    first_name: string | null;
-    last_name: string | null;
-    avatar_url: string | null;
-  } | null;
+  profiles?: MessageProfile | null;
 }
 
 interface ChatInterfaceProps {
@@ -155,9 +157,9 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
       if (!user) return;
       
       try {
-        const { error } = await supabase.rpc('update_user_activity', {
-          user_id: user.id,
-          group_id: groupId
+        // Use the SQL function instead of the edge function
+        const { error } = await supabase.rpc('update_user_activity_points', {
+          p_user_id: user.id
         });
         
         if (error) console.error('Error updating user activity:', error);

@@ -24,16 +24,18 @@ import {
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 
+interface MemberProfile {
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+}
+
 interface Member {
   id: string;
   user_id: string;
   joined_at: string;
   is_admin: boolean;
-  profiles?: {
-    first_name: string | null;
-    last_name: string | null;
-    avatar_url: string | null;
-  } | null;
+  profiles?: MemberProfile | null;
 }
 
 interface Group {
@@ -90,7 +92,7 @@ export const GroupDetails = ({ groupId }: GroupDetailsProps) => {
         
         // Filter out any items with error in profiles
         const validMembersData = membersData?.filter(item => 
-          !item.profiles || typeof item.profiles !== 'string'
+          item.profiles && typeof item.profiles !== 'string' && !('error' in item.profiles)
         ) as Member[];
         
         setMembers(validMembersData || []);

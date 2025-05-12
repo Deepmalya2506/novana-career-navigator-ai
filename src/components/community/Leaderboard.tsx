@@ -7,17 +7,19 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Trophy } from 'lucide-react';
 
+interface LeaderboardProfile {
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+}
+
 interface LeaderboardUser {
   user_id: string;
   activity_points: number;
   messages_sent: number;
   groups_joined: number;
   last_active: string;
-  profiles?: {
-    first_name: string | null;
-    last_name: string | null;
-    avatar_url: string | null;
-  } | null;
+  profiles?: LeaderboardProfile | null;
 }
 
 export const Leaderboard = () => {
@@ -44,7 +46,7 @@ export const Leaderboard = () => {
         
         // Filter out any items with error in profiles
         const validData = data?.filter(item => 
-          !item.profiles || typeof item.profiles !== 'string'
+          item.profiles && typeof item.profiles !== 'string' && !('error' in item.profiles)
         ) as LeaderboardUser[];
         
         setUsers(validData || []);
