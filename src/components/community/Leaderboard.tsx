@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trophy, Medal } from 'lucide-react';
+import { Trophy } from 'lucide-react';
 
 interface LeaderboardUser {
   user_id: string;
@@ -17,7 +17,7 @@ interface LeaderboardUser {
     first_name: string | null;
     last_name: string | null;
     avatar_url: string | null;
-  }
+  } | null;
 }
 
 export const Leaderboard = () => {
@@ -42,7 +42,12 @@ export const Leaderboard = () => {
           
         if (error) throw error;
         
-        setUsers(data);
+        // Filter out any items with error in profiles
+        const validData = data?.filter(item => 
+          !item.profiles || typeof item.profiles !== 'string'
+        ) as LeaderboardUser[];
+        
+        setUsers(validData || []);
       } catch (error) {
         console.error('Error fetching leaderboard data:', error);
       } finally {

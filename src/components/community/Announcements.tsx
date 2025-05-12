@@ -12,7 +12,7 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Message, Bell, MessageCircle } from 'lucide-react';
+import { Bell, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 
@@ -53,7 +53,12 @@ export const Announcements = () => {
           
         if (error) throw error;
         
-        setAnnouncements(data || []);
+        // Filter out any items with error in profiles
+        const validData = data?.filter(item => 
+          !item.profiles || typeof item.profiles !== 'string'
+        ) as Announcement[];
+        
+        setAnnouncements(validData || []);
       } catch (error) {
         console.error('Error fetching announcements:', error);
         toast.error('Failed to load announcements');

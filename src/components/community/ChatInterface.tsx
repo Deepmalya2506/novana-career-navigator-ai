@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -20,7 +19,7 @@ interface ChatMessage {
     first_name: string | null;
     last_name: string | null;
     avatar_url: string | null;
-  }
+  } | null;
 }
 
 interface ChatInterfaceProps {
@@ -59,7 +58,12 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
           
         if (error) throw error;
         
-        setMessages(data || []);
+        // Filter out any items with error in profiles
+        const validData = data?.filter(item => 
+          !item.profiles || typeof item.profiles !== 'string'
+        ) as ChatMessage[];
+        
+        setMessages(validData || []);
       } catch (error) {
         console.error('Error fetching messages:', error);
         toast.error('Failed to load messages');
@@ -82,18 +86,23 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
         }, 
         async (payload) => {
           // When a new message arrives, fetch its profile data
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('first_name, last_name, avatar_url')
-            .eq('id', payload.new.user_id)
-            .single();
-            
-          if (!error && data) {
-            const newMsg = {
-              ...payload.new,
-              profiles: data
-            };
-            setMessages(prev => [...prev, newMsg]);
+          try {
+            const { data, error } = await supabase
+              .from('profiles')
+              .select('first_name, last_name, avatar_url')
+              .eq('id', payload.new.user_id)
+              .single();
+              
+            if (!error && data) {
+              const newMsg = {
+                ...payload.new,
+                profiles: data
+              } as ChatMessage;
+              
+              setMessages(prev => [...prev, newMsg]);
+            }
+          } catch (err) {
+            console.error('Error processing new message:', err);
           }
         }
       )

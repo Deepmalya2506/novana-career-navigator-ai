@@ -88,11 +88,16 @@ export const GroupDetails = ({ groupId }: GroupDetailsProps) => {
           
         if (membersError) throw membersError;
         
-        setMembers(membersData);
+        // Filter out any items with error in profiles
+        const validMembersData = membersData?.filter(item => 
+          !item.profiles || typeof item.profiles !== 'string'
+        ) as Member[];
+        
+        setMembers(validMembersData || []);
         
         // Check if current user is admin
         if (user) {
-          const adminMember = membersData.find(m => 
+          const adminMember = validMembersData.find(m => 
             m.user_id === user.id && m.is_admin
           );
           setIsAdmin(!!adminMember);
