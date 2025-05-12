@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -22,6 +23,17 @@ interface ChatMessage {
   is_edited: boolean;
   parent_id: string | null;
   profiles?: MessageProfile | null;
+}
+
+// Interface for Supabase response with potential error
+interface ChatMessageWithError {
+  id: string;
+  content: string;
+  created_at: string;
+  user_id: string;
+  is_edited: boolean;
+  parent_id: string | null;
+  profiles: { error: true } | MessageProfile;
 }
 
 interface ChatInterfaceProps {
@@ -61,9 +73,16 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
         if (error) throw error;
         
         // Filter out any items with error in profiles
-        const validData = data?.filter(item => 
-          !item.profiles || typeof item.profiles !== 'string'
-        ) as ChatMessage[];
+        const validData = data
+          ?.filter(item => 
+            item.profiles && 
+            typeof item.profiles !== 'string' && 
+            !('error' in item.profiles)
+          )
+          .map(item => ({
+            ...item,
+            profiles: item.profiles as MessageProfile
+          }));
         
         setMessages(validData || []);
       } catch (error) {
@@ -145,11 +164,6 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
       supabase.removeChannel(channel);
     };
   }, [groupId]);
-  
-  // Scroll to bottom whenever messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
   
   // Update user activity
   useEffect(() => {
