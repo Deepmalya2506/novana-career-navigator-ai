@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -207,14 +206,18 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
           
         if (error) throw error;
         
-        // Update messages sent count
+        // Update messages sent count - get current user messages count
+        const userMessagesCount = messages.filter(m => m.user_id === user.id).length;
+        const newMessagesCount = userMessagesCount + 1;
+        const newActivityPoints = newMessagesCount * 5 + 10;
+        
         await supabase
           .from('user_activity')
           .upsert({
             user_id: user.id,
-            messages_sent: messages.filter(m => m.user_id === user.id).length + 1,
+            messages_sent: newMessagesCount,
             last_active: new Date().toISOString(),
-            activity_points: messages.filter(m => m.user_id === user.id).length * 5 + 10
+            activity_points: newActivityPoints
           });
       }
       
