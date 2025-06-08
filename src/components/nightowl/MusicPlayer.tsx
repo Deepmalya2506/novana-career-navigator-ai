@@ -7,20 +7,7 @@ import { PlayCircle, PauseCircle, Volume2, Music, SkipForward, Loader, AlertCirc
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
-
-interface Track {
-  id: string;
-  name: string;
-  url: string;
-  type: 'lofi' | 'ambient' | 'piano' | 'nature';
-}
-
-const tracks: Track[] = [
-  { id: '1', name: 'Lunar Lo-fi', url: 'https://cdn.pixabay.com/download/audio/2022/05/17/audio_99fab6835e.mp3', type: 'lofi' },
-  { id: '2', name: 'Midnight Motivation', url: 'https://cdn.pixabay.com/download/audio/2022/07/24/audio_dcf3f8f985.mp3', type: 'ambient' },
-  { id: '3', name: 'Focus Flow', url: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1259453f48.mp3', type: 'piano' },
-  { id: '4', name: 'Rainfall Calm', url: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d1bbc44873.mp3', type: 'nature' },
-];
+import { tracks, loadAudioWithFallback, preloadAudio, Track } from '@/utils/audioTracks';
 
 // Create a global audio context to persist across page navigation
 let globalAudioInstance: HTMLAudioElement | null = null;
@@ -53,31 +40,51 @@ const MusicPlayer = () => {
         }
       }
     } else {
+      initializeAudio(currentTrack);
+    }
+    
+    return () => {
+      if (progressIntervalRef.current) {
+        window.clearInterval(progressIntervalRef.current);
+      }
+    };
+  }, []);
+
+  const initializeAudio = async (track: Track) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const workingUrl = await loadAudioWithFallback(track);
+      
       audioRef.current = new Audio();
       audioRef.current.loop = true;
       audioRef.current.volume = volume / 100;
-      audioRef.current.src = currentTrack.url;
+      audioRef.current.src = workingUrl;
       
       globalAudioInstance = audioRef.current;
-      globalCurrentTrackId = currentTrack.id;
+      globalCurrentTrackId = track.id;
       
       audioRef.current.addEventListener('canplaythrough', () => {
         setLoading(false);
         setDuration(audioRef.current?.duration || 0);
+        setError(null);
       });
       
       audioRef.current.addEventListener('error', (e) => {
         console.error('Audio error:', e);
-        setError('Failed to load audio file. Please try again.');
+        setError(`Failed to load "${track.name}". Audio source may be unavailable.`);
         setLoading(false);
         toast({
           title: "Audio Error",
-          description: "Couldn't play the selected track. Please try another track.",
+          description: `Couldn't load ${track.name}. Trying fallback sources...`,
           variant: "destructive"
         });
+        
+        // Try to load a different track as fallback
+        tryFallbackTrack();
       });
       
-      // Add event listener for when audio finishes playing
       audioRef.current.addEventListener('ended', () => {
         if (audioRef.current?.loop) {
           audioRef.current.currentTime = 0;
@@ -88,20 +95,40 @@ const MusicPlayer = () => {
       });
       
       audioRef.current.load();
+    } catch (err) {
+      console.error('Failed to initialize audio:', err);
+      setError('Unable to load any audio sources. Please check your internet connection.');
+      setLoading(false);
+      toast({
+        title: "Connection Error",
+        description: "Unable to load audio. Please check your internet connection.",
+        variant: "destructive"
+      });
     }
-    
-    return () => {
-      if (progressIntervalRef.current) {
-        window.clearInterval(progressIntervalRef.current);
+  };
+
+  const tryFallbackTrack = async () => {
+    const availableTracks = tracks.filter(t => t.id !== currentTrack.id);
+    for (const track of availableTracks) {
+      try {
+        await loadAudioWithFallback(track);
+        changeTrack(track);
+        toast({
+          title: "Switched Track",
+          description: `Loaded ${track.name} instead.`,
+        });
+        break;
+      } catch (err) {
+        continue;
       }
-    };
-  }, []);
+    }
+  };
   
   // Update progress bar
   useEffect(() => {
     if (isPlaying) {
       progressIntervalRef.current = window.setInterval(() => {
-        if (audioRef.current) {
+        if (audioRef.current && !audioRef.current.paused) {
           const currentTime = audioRef.current.currentTime;
           const audioDuration = audioRef.current.duration || 0;
           setProgress(audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0);
@@ -118,44 +145,57 @@ const MusicPlayer = () => {
     };
   }, [isPlaying]);
   
-  // Handle track change
-  const changeTrack = useCallback((track: Track) => {
+  // Handle track change with better error handling
+  const changeTrack = useCallback(async (track: Track) => {
     setLoading(true);
     setError(null);
     
-    if (audioRef.current) {
-      const wasPlaying = !audioRef.current.paused;
-      audioRef.current.pause();
-      audioRef.current.src = track.url;
-      audioRef.current.load();
+    try {
+      const workingUrl = await loadAudioWithFallback(track);
       
-      const onCanPlay = () => {
-        setLoading(false);
-        setDuration(audioRef.current?.duration || 0);
-        if (wasPlaying) {
-          audioRef.current?.play()
-            .then(() => {
-              setIsPlaying(true);
-            })
-            .catch(err => {
-              console.error("Playback failed:", err);
-              toast({
-                title: "Playback Error",
-                description: "Browser requires user interaction before playing audio.",
-                variant: "destructive"
+      if (audioRef.current) {
+        const wasPlaying = !audioRef.current.paused;
+        audioRef.current.pause();
+        audioRef.current.src = workingUrl;
+        audioRef.current.load();
+        
+        const onCanPlay = () => {
+          setLoading(false);
+          setDuration(audioRef.current?.duration || 0);
+          if (wasPlaying) {
+            audioRef.current?.play()
+              .then(() => {
+                setIsPlaying(true);
+              })
+              .catch(err => {
+                console.error("Playback failed:", err);
+                toast({
+                  title: "Playback Error",
+                  description: "Browser requires user interaction before playing audio.",
+                  variant: "destructive"
+                });
+                setIsPlaying(false);
               });
-              setIsPlaying(false);
-            });
-        }
-        // Remove the event listener to avoid duplicates
-        audioRef.current?.removeEventListener('canplaythrough', onCanPlay);
-      };
-      
-      audioRef.current.addEventListener('canplaythrough', onCanPlay);
-      
-      setCurrentTrack(track);
-      globalCurrentTrackId = track.id;
-      setProgress(0);
+          }
+          audioRef.current?.removeEventListener('canplaythrough', onCanPlay);
+        };
+        
+        audioRef.current.addEventListener('canplaythrough', onCanPlay);
+        
+        setCurrentTrack(track);
+        globalCurrentTrackId = track.id;
+        setProgress(0);
+        setError(null);
+      }
+    } catch (err) {
+      console.error('Failed to change track:', err);
+      setError(`Failed to load "${track.name}". Please try another track.`);
+      setLoading(false);
+      toast({
+        title: "Track Load Error",
+        description: `Couldn't load ${track.name}. Please try another track.`,
+        variant: "destructive"
+      });
     }
   }, [toast]);
   
@@ -166,7 +206,7 @@ const MusicPlayer = () => {
     }
   }, [volume]);
   
-  // Enhanced togglePlay function that will select first track if none selected
+  // Enhanced togglePlay function
   const togglePlay = useCallback(() => {
     if (!audioRef.current) return;
     
@@ -174,12 +214,11 @@ const MusicPlayer = () => {
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
-      // If there's no current track selected, default to the first track
       if (!currentTrack && tracks.length > 0) {
         changeTrack(tracks[0]);
+        return;
       }
       
-      // Handle autoplay restrictions by catching the promise rejection
       audioRef.current.play()
         .then(() => {
           setIsPlaying(true);
@@ -206,7 +245,6 @@ const MusicPlayer = () => {
       ? tracks 
       : tracks.filter(track => track.type === filterType);
     
-    // If there are no filtered tracks, return
     if (filteredTracks.length === 0) {
       toast({
         title: "No tracks available",
@@ -220,7 +258,6 @@ const MusicPlayer = () => {
     const nextIndex = (currentIndex + 1) % filteredTracks.length;
     changeTrack(filteredTracks[nextIndex]);
     
-    // Auto-play the next track
     setIsPlaying(true);
   }, [currentTrack, filterType, changeTrack, toast]);
   
@@ -271,8 +308,17 @@ const MusicPlayer = () => {
         
         <div>
           <p className="text-center text-white/70 mb-2">
-            {loading ? 'Loading...' : error ? 'Error loading track' : isPlaying ? `Now Playing: ${currentTrack.name}` : 'Select to play'}
+            {loading ? 'Loading track...' : 
+             error ? 'Audio unavailable' : 
+             isPlaying ? `Now Playing: ${currentTrack.name}` : 
+             'Select a track to play'}
           </p>
+          
+          {error && (
+            <p className="text-center text-xs text-destructive mb-2">
+              {error}
+            </p>
+          )}
           
           {!error && (
             <div className="mb-2">
@@ -310,9 +356,8 @@ const MusicPlayer = () => {
               className={`w-full justify-start ${currentTrack.id === track.id ? 'bg-white/10' : ''}`}
               onClick={() => {
                 changeTrack(track);
-                // Auto-play when a track is selected
                 if (audioRef.current && !isPlaying) {
-                  togglePlay();
+                  setTimeout(() => togglePlay(), 100);
                 }
               }}
               disabled={loading && currentTrack.id === track.id}
