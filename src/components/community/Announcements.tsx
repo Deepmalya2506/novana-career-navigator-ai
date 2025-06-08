@@ -31,16 +31,6 @@ interface Announcement {
   profiles?: AnnouncementProfile | null;
 }
 
-// Interface for Supabase response with potential error
-interface AnnouncementWithError {
-  id: string;
-  title: string;
-  content: string;
-  created_at: string;
-  created_by: string;
-  profiles: { error: true } | AnnouncementProfile;
-}
-
 export const Announcements = () => {
   const { user } = useAuth();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -65,19 +55,15 @@ export const Announcements = () => {
           
         if (error) throw error;
         
-        // Filter out any items with error in profiles
-        const validData = data
-          ?.filter(item => 
-            item.profiles && 
-            typeof item.profiles !== 'string' && 
-            !('error' in item.profiles)
-          )
-          .map(item => ({
-            ...item,
-            profiles: item.profiles as AnnouncementProfile
-          }));
+        // Process the data to handle the profile relationship
+        const processedData = data?.map(item => ({
+          ...item,
+          profiles: item.profiles && typeof item.profiles === 'object' && !Array.isArray(item.profiles) 
+            ? item.profiles as AnnouncementProfile 
+            : null
+        })) || [];
         
-        setAnnouncements(validData || []);
+        setAnnouncements(processedData);
       } catch (error) {
         console.error('Error fetching announcements:', error);
         toast.error('Failed to load announcements');

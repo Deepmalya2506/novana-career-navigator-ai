@@ -38,15 +38,6 @@ interface Member {
   profiles?: MemberProfile | null;
 }
 
-// Interface for Supabase response with potential error
-interface MemberWithError {
-  id: string;
-  user_id: string;
-  joined_at: string;
-  is_admin: boolean;
-  profiles: { error: true } | MemberProfile;
-}
-
 interface Group {
   id: string;
   name: string;
@@ -99,23 +90,19 @@ export const GroupDetails = ({ groupId }: GroupDetailsProps) => {
           
         if (membersError) throw membersError;
         
-        // Filter out any items with error in profiles
-        const validMembersData = membersData
-          ?.filter(item => 
-            item.profiles && 
-            typeof item.profiles !== 'string' && 
-            !('error' in item.profiles)
-          )
-          .map(item => ({
-            ...item,
-            profiles: item.profiles as MemberProfile
-          }));
+        // Process the data to handle the profile relationship
+        const processedMembersData = membersData?.map(item => ({
+          ...item,
+          profiles: item.profiles && typeof item.profiles === 'object' && !Array.isArray(item.profiles)
+            ? item.profiles as MemberProfile
+            : null
+        })) || [];
         
-        setMembers(validMembersData || []);
+        setMembers(processedMembersData);
         
         // Check if current user is admin
         if (user) {
-          const adminMember = validMembersData?.find(m => 
+          const adminMember = processedMembersData?.find(m => 
             m.user_id === user.id && m.is_admin
           );
           setIsAdmin(!!adminMember);

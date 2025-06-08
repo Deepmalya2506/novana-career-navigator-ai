@@ -22,16 +22,6 @@ interface LeaderboardUser {
   profiles?: LeaderboardProfile | null;
 }
 
-// Interface for Supabase response with potential error
-interface LeaderboardUserWithError {
-  user_id: string;
-  activity_points: number;
-  messages_sent: number;
-  groups_joined: number;
-  last_active: string;
-  profiles: { error: true } | LeaderboardProfile;
-}
-
 export const Leaderboard = () => {
   const [users, setUsers] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,19 +44,15 @@ export const Leaderboard = () => {
           
         if (error) throw error;
         
-        // Filter out any items with error in profiles
-        const validData = data
-          ?.filter(item => 
-            item.profiles && 
-            typeof item.profiles !== 'string' && 
-            !('error' in item.profiles)
-          )
-          .map(item => ({
-            ...item,
-            profiles: item.profiles as LeaderboardProfile
-          }));
+        // Process the data to handle the profile relationship
+        const processedData = data?.map(item => ({
+          ...item,
+          profiles: item.profiles && typeof item.profiles === 'object' && !Array.isArray(item.profiles)
+            ? item.profiles as LeaderboardProfile
+            : null
+        })) || [];
         
-        setUsers(validData || []);
+        setUsers(processedData);
       } catch (error) {
         console.error('Error fetching leaderboard data:', error);
       } finally {
