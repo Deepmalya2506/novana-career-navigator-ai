@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -211,14 +212,18 @@ export const ChatInterface = ({ groupId }: ChatInterfaceProps) => {
         const newMessagesCount = userMessagesCount + 1;
         const newActivityPoints = newMessagesCount * 5 + 10;
         
-        await supabase
+        const { error: activityError } = await supabase
           .from('user_activity')
           .upsert({
             user_id: user.id,
             messages_sent: newMessagesCount,
             last_active: new Date().toISOString(),
             activity_points: newActivityPoints
-          });
+          } as const);
+          
+        if (activityError) {
+          console.error('Error updating user activity:', activityError);
+        }
       }
       
       setNewMessage('');
